@@ -17,18 +17,21 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
 
   useEffect(() => {
     const fetchRecords = async () => {
-      try {
-        const res = await fetch(`/api/cashflow-records/${fileId}`)
-        if (!res.ok) throw new Error("Failed to load cashflow data")
-        const { records } = await res.json()
-        console.log("📥 Parsed records from API:", records)
-        setRecords(records)
-      } catch (err: any) {
-        setError(err.message || "Unexpected error")
-      } finally {
-        setLoading(false)
-      }
-    }
+  try {
+    const res = await fetch(`/api/cashflow-records/${fileId}`)
+    if (!res.ok) throw new Error("Failed to load cashflow data")
+
+    const json = await res.json()
+    console.log("📥 Raw API response:", json)
+
+    const { records } = json
+    setRecords(records)
+  } catch (err: any) {
+    setError(err.message || "Unexpected error")
+  } finally {
+    setLoading(false)
+  }
+}
 
     fetchRecords()
   }, [fileId])
