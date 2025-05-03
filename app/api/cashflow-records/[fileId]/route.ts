@@ -52,7 +52,7 @@ export async function GET(
   // 3. Fetch matching cashflow records
   const { data: records, error: recordError } = await supabase
     .from("cashflow_records")
-    .select("*")
+    .select("id, year, amount, is_recurring, category:cashflow_categories(name), source_file_id")
     .eq("source_file_id", file.id)
     .eq("entity_id", finalEntityId)
     .order("year", { ascending: true })
