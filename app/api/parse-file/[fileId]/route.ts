@@ -19,12 +19,17 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
   try {
     const supabase = createServerSupabaseClient({ req })
 
+    console.log("🔁 parse-file called for:", params.fileId)
+
     const { data: userData, error: authError } = await supabase.auth.getUser()
     const user = userData?.user
+
     if (authError || !user) {
       console.error("❌ Auth error:", authError)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    console.log("✅ Authenticated user:", user.id)
 
     const { data: file, error: fileError } = await supabase
       .from("uploaded_files")
@@ -37,6 +42,8 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       return NextResponse.json({ error: "File not found" }, { status: 404 })
     }
 
+    console.log("📂 Fetched file:", file.file_path)
+
     const { data: fileBlob, error: downloadError } = await supabase.storage
       .from("cashflow-files")
       .download(file.file_path)
@@ -46,11 +53,20 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       return NextResponse.json({ error: "Download failed" }, { status: 500 })
     }
 
+    console.log("📄 File downloaded")
+
     const csvText = await fileBlob.text()
     const rows = parse(csvText, { skip_empty_lines: true })
-    const headers = rows[0]
-    const yearColumns: Record<number, number> = {}
 
+    if (!rows || rows.length === 0) {
+      console.error("❌ Empty or invalid CSV")
+      return NextResponse.json({ error: "Empty CSV" }, { status: 400 })
+    }
+
+    const headers = rows[0]
+    console.log("🧠 CSV headers:", headers)
+
+    const yearColumns: Record<number, number> = {}
     headers.forEach((col: string, i: number) => {
       const match = col.match(/\b(20\d{2})\b/)
       if (match) yearColumns[i] = parseInt(match[1])
@@ -61,6 +77,8 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       return NextResponse.json({ error: "No year columns found" }, { status: 400 })
     }
 
+    console.log("📅 Year columns:", yearColumns)
+
     const normalizedRecords: any[] = []
     const errorRecords: any[] = []
 
@@ -68,26 +86,13 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       const row = rows[i]
       const categoryName = row[0]?.trim()
 
-      if (!categoryName) {
-        errorRecords.push({
-          row_number: i,
-          column_name: headers[0],
-          error_type: "empty_cell",
-          error_message: "Missing category name",
-          raw_value: "",
-        })
-        continue
-      }
+      if (!categoryName) continue
 
-      let { data: category, error: catFetchError } = await supabase
+      let { data: category } = await supabase
         .from("cashflow_categories")
         .select("*")
         .ilike("name", categoryName)
         .maybeSingle()
-
-      if (catFetchError) {
-        console.error("❌ Category fetch error:", catFetchError)
-      }
 
       if (!category) {
         const type = guessCategoryType(categoryName)
@@ -96,11 +101,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
           .insert({ name: categoryName, type, is_system: false })
           .select()
           .single()
-
-        if (insertError) {
-          console.error("❌ Category insert error:", insertError)
-          continue
-        }
+        if (insertError) continue
         category = created
       }
 
@@ -109,28 +110,21 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
         const amount = cleanNumericValue(value)
         const year = yearColumns[colIndex]
 
-        if (isNaN(amount)) {
-          errorRecords.push({
-            row_number: i,
-            column_name: headers[colIndex],
-            error_type: "invalid_number",
-            error_message: `Could not convert: "${value}"`,
-            raw_value: value,
+        if (!isNaN(amount)) {
+          normalizedRecords.push({
+            user_id: user.id,
+            entity_id: file.entity_id || null,
+            category_id: category.id,
+            year,
+            amount,
+            source_file_id: file.id,
+            is_recurring: true,
           })
-          continue
         }
-
-        normalizedRecords.push({
-          user_id: user.id,
-          entity_id: file.entity_id || null,
-          category_id: category.id,
-          year,
-          amount,
-          source_file_id: file.id,
-          is_recurring: true,
-        })
       }
     }
+
+    console.log("📊 Records parsed:", normalizedRecords.length)
 
     if (normalizedRecords.length > 0) {
       const { error: insertError } = await supabase
@@ -138,14 +132,9 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
         .insert(normalizedRecords)
 
       if (insertError) {
-        console.error("❌ Record insert error:", insertError)
+        console.error("❌ Insert error:", insertError)
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
-    }
-
-    if (errorRecords.length > 0) {
-      const enriched = errorRecords.map((e) => ({ ...e, file_id: file.id, user_id: user.id }))
-      await supabase.from("parser_errors").insert(enriched)
     }
 
     await supabase
@@ -153,15 +142,13 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       .update({ status: "processed", processed_at: new Date().toISOString() })
       .eq("id", file.id)
 
-    console.log("✅ Parser complete. Inserted:", normalizedRecords.length, "Failed:", errorRecords.length)
-
+    console.log("✅ Parser complete")
     return NextResponse.json({
       message: "Parsed successfully",
       rows_inserted: normalizedRecords.length,
-      rows_failed: errorRecords.length,
     })
   } catch (err: any) {
-    console.error("❌ Unexpected server error:", err.message || err)
+    console.error("❌ Unexpected error:", err)
     return NextResponse.json({ error: "Unexpected error", details: err.message }, { status: 500 })
   }
 }
