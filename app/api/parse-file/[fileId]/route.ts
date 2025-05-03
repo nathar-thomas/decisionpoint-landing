@@ -1,3 +1,5 @@
+// app/api/parse-file/[fileId]/route.ts
+
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { parse } from "csv-parse/sync"
@@ -15,13 +17,8 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
   return "expense"
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { fileId: string } }
-) {
+export async function POST(req: Request, { params }: { params: { fileId: string } }) {
   try {
-    console.log("🛠️ Starting parse for fileId:", params.fileId)
-
     const supabase = createServerSupabaseClient({ req })
     const { data: userData, error: authError } = await supabase.auth.getUser()
     const user = userData?.user
@@ -42,8 +39,6 @@ export async function POST(
       return NextResponse.json({ error: "File not found" }, { status: 404 })
     }
 
-    console.log("📦 Downloading file from Supabase storage:", file.file_path)
-
     const { data: fileBlob, error: fileDownloadError } = await supabase.storage
       .from("cashflow-files")
       .download(file.file_path)
@@ -54,15 +49,11 @@ export async function POST(
     }
 
     const csvText = await fileBlob.text()
-    console.log("📄 Fetched file text preview:", csvText.slice(0, 150))
-
     const rows = parse(csvText, { skip_empty_lines: true })
     const headers = rows[0]
-    console.log("📊 Parsed CSV headers:", headers)
-
     const categoryCol = 0
-    const yearColumns: Record<number, number> = {}
 
+    const yearColumns: Record<number, number> = {}
     headers.forEach((col: string, i: number) => {
       const match = col.match(/\b(20\d{2})\b/)
       if (match) yearColumns[i] = parseInt(match[1])
@@ -108,12 +99,10 @@ export async function POST(
           .insert({ name: categoryName, type: newType, is_system: false })
           .select()
           .single()
-
         if (insertError) {
           console.error("❌ Category insert error:", insertError)
           continue
         }
-
         category = created
       }
 
@@ -127,7 +116,7 @@ export async function POST(
             row_number: i,
             column_name: headers[colIndex],
             error_type: "invalid_number",
-            error_message: `Could not convert value: "${rawValue}"`,
+            error_message: `Could not convert value: \"${rawValue}\"`,
             raw_value: rawValue,
           })
           continue
@@ -144,9 +133,6 @@ export async function POST(
         })
       }
     }
-
-    console.log("✅ Normalized records count:", normalizedRecords.length)
-    console.log("⚠️ Error records count:", errorRecords.length)
 
     if (normalizedRecords.length > 0) {
       const { error: insertError } = await supabase.from("cashflow_records").insert(normalizedRecords)
@@ -179,9 +165,17 @@ export async function POST(
     })
   } catch (error: any) {
     console.error("❌ UNHANDLED ERROR in /parse-file:", error)
-    return NextResponse.json(
-      { error: "Unexpected server error", detail: error?.message || error.toString() },
-      { status: 500 }
+
+    return new Response(
+      JSON.stringify({
+        error: "Unexpected server error",
+        detail: error instanceof Error ? error.message : String(error),
+        stack: error?.stack || null,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     )
   }
 }
