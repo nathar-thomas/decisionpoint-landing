@@ -126,7 +126,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
 
       normalizedRecords.push({
         user_id: user.id,
-        entity_id: file.entity_id || null,
+        entity_id: file.entity_id || "3deea573-3165-4bf3-8007-db270aef8e96",
         category_id: category.id,
         year,
         amount: cleanedValue,
