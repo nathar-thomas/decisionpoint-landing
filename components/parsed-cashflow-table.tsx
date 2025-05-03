@@ -7,6 +7,7 @@ interface CashflowRecord {
   year: number
   amount: number
   is_recurring: boolean
+  source_file_id: string
   cashflow_categories: { name: string }
 }
 
