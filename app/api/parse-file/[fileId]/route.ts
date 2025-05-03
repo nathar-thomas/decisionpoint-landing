@@ -15,46 +15,54 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
   return "expense"
 }
 
-export async function POST(req: Request, { params }: { params: { fileId: string } }) {
-  const supabase = createServerSupabaseClient({ req, headers: req.headers })
-
+export async function POST(
+  req: Request,
+  { params }: { params: { fileId: string } }
+) {
   try {
+    console.log("🛠️ Starting parse for fileId:", params.fileId)
+
+    const supabase = createServerSupabaseClient({ req })
     const { data: userData, error: authError } = await supabase.auth.getUser()
-    if (authError || !userData?.user) {
+    const user = userData?.user
+
+    if (authError || !user) {
       console.error("❌ Auth error:", authError)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const user = userData.user
-
-    const { data: file, error: fileError } = await supabase
+    const { data: file, error: fileFetchError } = await supabase
       .from("uploaded_files")
       .select("*")
       .eq("id", params.fileId)
-      .eq("user_id", user.id)
       .single()
 
-    if (fileError || !file) {
-      console.error("❌ File fetch error:", fileError)
+    if (fileFetchError || !file) {
+      console.error("❌ File fetch error:", fileFetchError)
       return NextResponse.json({ error: "File not found" }, { status: 404 })
     }
 
-    const { data: fileBlob, error: blobError } = await supabase
-      .storage
+    console.log("📦 Downloading file from Supabase storage:", file.file_path)
+
+    const { data: fileBlob, error: fileDownloadError } = await supabase.storage
       .from("cashflow-files")
       .download(file.file_path)
 
-    if (blobError || !fileBlob) {
-      console.error("❌ File download failed:", blobError)
-      return NextResponse.json({ error: "Failed to download file" }, { status: 500 })
+    if (fileDownloadError || !fileBlob) {
+      console.error("❌ File download failed:", fileDownloadError)
+      return NextResponse.json({ error: "File download failed" }, { status: 500 })
     }
 
     const csvText = await fileBlob.text()
+    console.log("📄 Fetched file text preview:", csvText.slice(0, 150))
+
     const rows = parse(csvText, { skip_empty_lines: true })
     const headers = rows[0]
-    const categoryCol = 0
+    console.log("📊 Parsed CSV headers:", headers)
 
+    const categoryCol = 0
     const yearColumns: Record<number, number> = {}
+
     headers.forEach((col: string, i: number) => {
       const match = col.match(/\b(20\d{2})\b/)
       if (match) yearColumns[i] = parseInt(match[1])
@@ -65,34 +73,47 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       return NextResponse.json({ error: "No year columns found." }, { status: 400 })
     }
 
-    const normalizedRecords = []
-    const errorRecords = []
+    const normalizedRecords: any[] = []
+    const errorRecords: any[] = []
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i]
       const categoryName = row[categoryCol]?.trim()
 
       if (!categoryName) {
-        errorRecords.push({ row_number: i, column_name: headers[categoryCol], error_type: "empty", raw_value: "" })
+        errorRecords.push({
+          row_number: i,
+          column_name: headers[categoryCol],
+          error_type: "empty_cell",
+          error_message: "Missing category name",
+          raw_value: "",
+        })
         continue
       }
 
-      let { data: category } = await supabase
+      let { data: category, error: categoryFetchError } = await supabase
         .from("cashflow_categories")
         .select("*")
         .ilike("name", categoryName)
         .maybeSingle()
 
+      if (categoryFetchError) {
+        console.error("❌ Error fetching category:", categoryFetchError)
+      }
+
       if (!category) {
-        const { data: created } = await supabase
+        const newType = guessCategoryType(categoryName)
+        const { data: created, error: insertError } = await supabase
           .from("cashflow_categories")
-          .insert({
-            name: categoryName,
-            type: guessCategoryType(categoryName),
-            is_system: false,
-          })
+          .insert({ name: categoryName, type: newType, is_system: false })
           .select()
           .single()
+
+        if (insertError) {
+          console.error("❌ Category insert error:", insertError)
+          continue
+        }
+
         category = created
       }
 
@@ -102,7 +123,13 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
         const year = yearColumns[colIndex]
 
         if (isNaN(cleanedValue)) {
-          errorRecords.push({ row_number: i, column_name: headers[colIndex], error_type: "invalid", raw_value })
+          errorRecords.push({
+            row_number: i,
+            column_name: headers[colIndex],
+            error_type: "invalid_number",
+            error_message: `Could not convert value: "${rawValue}"`,
+            raw_value: rawValue,
+          })
           continue
         }
 
@@ -118,20 +145,24 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       }
     }
 
+    console.log("✅ Normalized records count:", normalizedRecords.length)
+    console.log("⚠️ Error records count:", errorRecords.length)
+
     if (normalizedRecords.length > 0) {
       const { error: insertError } = await supabase.from("cashflow_records").insert(normalizedRecords)
       if (insertError) {
         console.error("❌ Error inserting records:", insertError)
-        return NextResponse.json({ error: "Insert failed", detail: insertError.message }, { status: 500 })
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
     }
 
     if (errorRecords.length > 0) {
-      await supabase.from("parser_errors").insert(errorRecords.map((e) => ({
+      const enrichedErrors = errorRecords.map((e) => ({
         ...e,
         file_id: file.id,
         user_id: user.id,
-      })))
+      }))
+      await supabase.from("parser_errors").insert(enrichedErrors)
     }
 
     await supabase
@@ -139,7 +170,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       .update({ status: "processed", processed_at: new Date().toISOString() })
       .eq("id", file.id)
 
-    console.log("✅ Parse completed. Inserted:", normalizedRecords.length)
+    console.log("✅ Parser complete. Inserted:", normalizedRecords.length, "Failed:", errorRecords.length)
 
     return NextResponse.json({
       message: "Parsed successfully",
@@ -147,7 +178,10 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       rows_failed: errorRecords.length,
     })
   } catch (error: any) {
-    console.error("❌ Unexpected error:", error)
-    return NextResponse.json({ error: "Unexpected error", detail: error.message }, { status: 500 })
+    console.error("❌ UNHANDLED ERROR in /parse-file:", error)
+    return NextResponse.json(
+      { error: "Unexpected server error", detail: error?.message || error.toString() },
+      { status: 500 }
+    )
   }
 }
