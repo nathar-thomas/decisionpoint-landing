@@ -61,7 +61,6 @@
     "@supabase/supabase-js": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
     "csv-parse": "latest",
-    "stream": "latest",
     "react-dropzone": "latest",
     "uuid": "latest"
   },
