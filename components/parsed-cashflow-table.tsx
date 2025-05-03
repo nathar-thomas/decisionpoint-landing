@@ -21,6 +21,7 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
         const res = await fetch(`/api/cashflow-records/${fileId}`)
         if (!res.ok) throw new Error("Failed to load cashflow data")
         const { records } = await res.json()
+        console.log("📥 Parsed records from API:", records)
         setRecords(records)
       } catch (err: any) {
         setError(err.message || "Unexpected error")
