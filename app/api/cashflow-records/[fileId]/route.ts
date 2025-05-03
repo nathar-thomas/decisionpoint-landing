@@ -61,7 +61,6 @@ export async function GET(
       )
     `)
     .eq("source_file_id", file.id)
-    .eq("entity_id", finalEntityId)
     .order("year", { ascending: true })
 
   if (recordError) {
