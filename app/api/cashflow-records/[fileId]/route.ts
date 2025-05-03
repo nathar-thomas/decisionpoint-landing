@@ -62,5 +62,7 @@ export async function GET(
     return NextResponse.json({ error: recordError.message }, { status: 500 })
   }
 
+  console.log("🧾 Records fetched:", JSON.stringify(records, null, 2))
+  
   return NextResponse.json({ records })
 }
