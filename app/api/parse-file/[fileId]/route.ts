@@ -19,6 +19,7 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
 
 export async function POST(req: Request, { params }: { params: { fileId: string } }) {
   const supabase = createServerSupabaseClient()
+
   const {
     data: { user },
     error: authError,
