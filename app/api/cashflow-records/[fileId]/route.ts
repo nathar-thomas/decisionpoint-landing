@@ -30,12 +30,7 @@ export async function GET(
   }
 
   // 2. Get or fallback to unassigned entity
-  const entityId = file.entity_id
-  let finalEntityId = entityId
-
-  console.log("📄 file.id:", file.id)
-  console.log("🏢 initial entityId:", entityId)
-
+  let finalEntityId = file.entity_id
   if (!finalEntityId) {
     const { data: fallback, error: fallbackError } = await supabase
       .from("entities")
@@ -55,7 +50,16 @@ export async function GET(
   // 3. Fetch matching cashflow records
   const { data: records, error: recordError } = await supabase
     .from("cashflow_records")
-    .select("id, year, amount, is_recurring, category:cashflow_categories(name), source_file_id")
+    .select(`
+      id,
+      year,
+      amount,
+      is_recurring,
+      source_file_id,
+      cashflow_categories (
+        name
+      )
+    `)
     .eq("source_file_id", file.id)
     .eq("entity_id", finalEntityId)
     .order("year", { ascending: true })
@@ -64,8 +68,6 @@ export async function GET(
     console.error("❌ Error fetching records:", recordError)
     return NextResponse.json({ error: recordError.message }, { status: 500 })
   }
-
-  console.log("🧾 Records fetched:", JSON.stringify(records, null, 2))
 
   return NextResponse.json({ records })
 }

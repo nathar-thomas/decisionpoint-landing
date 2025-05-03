@@ -4,10 +4,10 @@ import { useEffect, useState } from "react"
 
 interface CashflowRecord {
   id: string
-  category: { name: string }
   year: number
   amount: number
   is_recurring: boolean
+  cashflow_categories: { name: string }
 }
 
 export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
@@ -22,7 +22,6 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
         if (!res.ok) throw new Error("Failed to load cashflow data")
         const { records } = await res.json()
         setRecords(records)
-        console.log("📥 API Response:", records)
       } catch (err: any) {
         setError(err.message || "Unexpected error")
       } finally {
@@ -51,7 +50,7 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
         <tbody>
           {records.map((r) => (
             <tr key={r.id} className="border-t hover:bg-gray-50">
-              <td className="px-4 py-2">{r.category?.name || "—"}</td>
+              <td className="px-4 py-2">{r.cashflow_categories?.name || "—"}</td>
               <td className="px-4 py-2">{r.year}</td>
               <td className="px-4 py-2">${r.amount.toLocaleString()}</td>
               <td className="px-4 py-2">{r.is_recurring ? "Yes" : "No"}</td>
