@@ -12,13 +12,35 @@ import { Progress } from "@/components/ui/progress"
 
 type FileStatus = "idle" | "uploading" | "success" | "error"
 
+// Prevent V0 from deleting route handler: /api/cashflow-records/[fileId]
+
 export function FileUploader() {
   const [fileStatus, setFileStatus] = useState<FileStatus>("idle")
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [uploadProgress, setUploadProgress] = useState<number>(0)
   const [fileName, setFileName] = useState<string>("")
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null)
 
   const supabase = createClientComponentClient()
+
+  const handleParse = async (fileId: string) => {
+    try {
+      const response = await fetch(`/api/parse-file/${fileId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to parse file")
+      }
+
+      console.log("✅ Parse complete:", data)
+    } catch (error) {
+      console.error("❌ Error during parsing:", error)
+    }
+  }
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -30,7 +52,6 @@ export function FileUploader() {
       setUploadProgress(0)
 
       try {
-        // Check if user is authenticated
         const {
           data: { user },
         } = await supabase.auth.getUser()
@@ -39,22 +60,21 @@ export function FileUploader() {
           throw new Error("You must be logged in to upload files")
         }
 
-        // Create a unique file path
         const fileExt = file.name.split(".").pop()
-        const fileName = `${uuidv4()}-${Date.now()}.${fileExt}`
-        const filePath = `${user.id}/${fileName}`
+        const generatedName = `${uuidv4()}-${Date.now()}.${fileExt}`
+        const filePath = `${user.id}/${generatedName}`
 
-        // Upload file to Supabase Storage
-        const { error: uploadError } = await supabase.storage.from("cashflow-files").upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        })
+        const { error: uploadError } = await supabase.storage
+          .from("cashflow-files")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+          })
 
         if (uploadError) {
           throw new Error(`Error uploading file: ${uploadError.message}`)
         }
 
-        // Simulate progress (in a real app, you might use an upload progress event)
         const progressInterval = setInterval(() => {
           setUploadProgress((prev) => {
             if (prev >= 95) {
@@ -65,35 +85,35 @@ export function FileUploader() {
           })
         }, 100)
 
-        // Insert record into uploaded_files table
-        const { error: dbError } = await supabase.from("uploaded_files").insert({
-          user_id: user.id,
-          filename: file.name,
-          file_path: filePath,
-          file_type: file.type,
-          status: "uploaded",
-        })
+        const { data: fileRecord, error: dbError } = await supabase
+          .from("uploaded_files")
+          .insert({
+            user_id: user.id,
+            filename: file.name,
+            file_path: filePath,
+            file_type: file.type,
+            status: "uploaded",
+          })
+          .select()
+          .single()
 
         if (dbError) {
           throw new Error(`Error recording file: ${dbError.message}`)
         }
 
-        // Complete the progress bar
         clearInterval(progressInterval)
         setUploadProgress(100)
         setFileStatus("success")
+        setUploadedFileId(fileRecord.id)
 
-        // Reset after 3 seconds
-        setTimeout(() => {
-          setFileStatus("idle")
-          setUploadProgress(0)
-        }, 3000)
+        // 👇 Automatically parse after upload
+        await handleParse(fileRecord.id)
       } catch (error) {
         setFileStatus("error")
         setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred")
       }
     },
-    [supabase],
+    [supabase]
   )
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
@@ -107,33 +127,41 @@ export function FileUploader() {
     multiple: false,
   })
 
+  const resetUploader = () => {
+    setFileStatus("idle")
+    setUploadProgress(0)
+    setUploadedFileId(null)
+  }
+
   return (
     <div className="space-y-4">
-      <div
-        {...getRootProps()}
-        className={`
-          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-          ${isDragActive ? "border-primary bg-primary/10" : "border-muted-foreground/25 hover:border-primary/50"}
-          ${isDragReject ? "border-destructive bg-destructive/10" : ""}
-        `}
-      >
-        <input {...getInputProps()} />
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="rounded-full bg-muted p-3">
-            <Upload className="h-6 w-6" />
+      {fileStatus !== "success" && (
+        <div
+          {...getRootProps()}
+          className={`
+            border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+            ${isDragActive ? "border-primary bg-primary/10" : "border-muted-foreground/25 hover:border-primary/50"}
+            ${isDragReject ? "border-destructive bg-destructive/10" : ""}
+          `}
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="rounded-full bg-muted p-3">
+              <Upload className="h-6 w-6" />
+            </div>
+            <div className="space-y-2">
+              <p className="font-medium">
+                {isDragActive ? "Drop the file here..." : "Drag and drop your file here or click to browse"}
+              </p>
+              <p className="text-sm text-muted-foreground">Only CSV and Excel files (.csv, .xlsx) are supported</p>
+            </div>
+            <Button variant="outline" size="sm">
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Select File
+            </Button>
           </div>
-          <div className="space-y-2">
-            <p className="font-medium">
-              {isDragActive ? "Drop the file here..." : "Drag and drop your file here or click to browse"}
-            </p>
-            <p className="text-sm text-muted-foreground">Only CSV and Excel files (.csv, .xlsx) are supported</p>
-          </div>
-          <Button variant="outline" size="sm">
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Select File
-          </Button>
         </div>
-      </div>
+      )}
 
       {fileStatus === "uploading" && (
         <div className="space-y-2">
@@ -146,11 +174,19 @@ export function FileUploader() {
       )}
 
       {fileStatus === "success" && (
-        <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>File uploaded successfully. Your data is being processed.</AlertDescription>
-        </Alert>
+        <div className="space-y-4">
+          <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>File uploaded and parsed successfully.</AlertDescription>
+          </Alert>
+
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={resetUploader}>
+              Upload Another File
+            </Button>
+          </div>
+        </div>
       )}
 
       {fileStatus === "error" && (

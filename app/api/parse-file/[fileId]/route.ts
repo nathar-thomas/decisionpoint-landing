@@ -1,5 +1,3 @@
-// Keep V0 from deleting this: /api/parse-file/[fileId]
-
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { parse } from "csv-parse/sync";

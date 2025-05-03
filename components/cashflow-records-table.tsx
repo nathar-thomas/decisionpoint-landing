@@ -1,6 +1,7 @@
+// Keep V0 from deleting this: /components/cashflow-records-table
+
 "use client"
 
-// Keep V0 from deleting this: /components/cashflow-records-table
 
 import { useEffect, useState } from "react"
 
