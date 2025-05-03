@@ -1,5 +1,3 @@
-// app/api/parse-file/[fileId]/route.ts
-
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { parse } from "csv-parse/sync"
@@ -48,6 +46,44 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
   if (fileDownloadError || !fileBlob) {
     console.error("❌ File download failed:", fileDownloadError)
     return NextResponse.json({ error: "File download failed" }, { status: 500 })
+  }
+
+  // ⬇️ fallback entity logic
+  let fallbackEntityId = file.entity_id
+  if (!fallbackEntityId) {
+    const { data: fallbackEntity, error: fallbackError } = await supabase
+      .from("entities")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("name", "Unassigned Entity")
+      .maybeSingle()
+
+    if (fallbackError) {
+      console.error("❌ Error checking fallback entity:", fallbackError)
+      return NextResponse.json({ error: "Entity lookup failed" }, { status: 500 })
+    }
+
+    if (fallbackEntity) {
+      fallbackEntityId = fallbackEntity.id
+    } else {
+      const { data: createdEntity, error: insertEntityError } = await supabase
+        .from("entities")
+        .insert({
+          name: "Unassigned Entity",
+          type: "business", // must match your enum
+          user_id: user.id,
+          metadata: {},
+        })
+        .select()
+        .single()
+
+      if (insertEntityError) {
+        console.error("❌ Error inserting fallback entity:", insertEntityError)
+        return NextResponse.json({ error: "Entity insert failed" }, { status: 500 })
+      }
+
+      fallbackEntityId = createdEntity.id
+    }
   }
 
   const csvText = await fileBlob.text()
@@ -126,7 +162,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
 
       normalizedRecords.push({
         user_id: user.id,
-        entity_id: file.entity_id || "3deea573-3165-4bf3-8007-db270aef8e96",
+        entity_id: fallbackEntityId,
         category_id: category.id,
         year,
         amount: cleanedValue,

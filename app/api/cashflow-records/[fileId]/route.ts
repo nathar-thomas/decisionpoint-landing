@@ -1,9 +1,10 @@
-// app/api/cashflow-records/[fileId]/route.ts
-
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET(req: Request, { params }: { params: { fileId: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { fileId: string } }
+) {
   const supabase = createServerSupabaseClient()
 
   const {
@@ -16,16 +17,50 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { data, error } = await supabase
-    .from("cashflow_records")
-    .select("*, cashflow_categories(name, type)")
-    .eq("source_file_id", params.fileId)
-    .order("year", { ascending: true })
+  // 1. Get uploaded file by fileId
+  const { data: file, error: fileError } = await supabase
+    .from("uploaded_files")
+    .select("*")
+    .eq("id", params.fileId)
+    .single()
 
-  if (error) {
-    console.error("❌ Fetch error:", error)
-    return NextResponse.json({ error: "Failed to fetch records" }, { status: 500 })
+  if (fileError || !file) {
+    console.error("❌ File fetch error:", fileError)
+    return NextResponse.json({ error: "File not found" }, { status: 404 })
   }
 
-  return NextResponse.json(data)
+  // 2. Get or fallback to unassigned entity
+  const entityId = file.entity_id
+  let finalEntityId = entityId
+
+  if (!finalEntityId) {
+    const { data: fallback, error: fallbackError } = await supabase
+      .from("entities")
+      .select("id")
+      .eq("name", "Unassigned Entity")
+      .eq("user_id", user.id)
+      .maybeSingle()
+
+    if (fallbackError || !fallback) {
+      console.error("❌ No fallback entity found for user:", fallbackError)
+      return NextResponse.json({ error: "No entity assigned" }, { status: 400 })
+    }
+
+    finalEntityId = fallback.id
+  }
+
+  // 3. Fetch matching cashflow records
+  const { data: records, error: recordError } = await supabase
+    .from("cashflow_records")
+    .select("*")
+    .eq("source_file_id", file.id)
+    .eq("entity_id", finalEntityId)
+    .order("year", { ascending: true })
+
+  if (recordError) {
+    console.error("❌ Error fetching records:", recordError)
+    return NextResponse.json({ error: recordError.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ records })
 }
