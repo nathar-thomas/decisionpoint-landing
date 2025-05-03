@@ -1,21 +1,21 @@
+// app/api/cashflow-records/[fileId]/route.ts
+
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET(
-  req: Request,
-  { params }: { params: { fileId: string } }
-) {
-  const supabase = createServerSupabaseClient({ req, headers: req.headers })
+export async function GET(req: Request, { params }: { params: { fileId: string } }) {
+  const supabase = createServerSupabaseClient({ req })
 
   try {
+    // Get the authenticated user
     const { data: userData, error: authError } = await supabase.auth.getUser()
-    if (authError || !userData?.user) {
-      console.error("❌ Auth error:", authError)
+    const user = userData?.user
+
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const user = userData.user
-
+    // Verify the file exists and belongs to the user
     const { data: file, error: fileError } = await supabase
       .from("uploaded_files")
       .select("*")
@@ -24,10 +24,10 @@ export async function GET(
       .single()
 
     if (fileError || !file) {
-      console.error("❌ File not found:", fileError)
       return NextResponse.json({ error: "File not found" }, { status: 404 })
     }
 
+    // Fetch cashflow records with their categories
     const { data: records, error: recordsError } = await supabase
       .from("cashflow_records")
       .select(`
@@ -43,24 +43,24 @@ export async function GET(
       .order("year", { ascending: true })
 
     if (recordsError) {
-      console.error("❌ Error fetching records:", recordsError)
       return NextResponse.json({ error: "Failed to fetch records" }, { status: 500 })
     }
 
-    const years = [...new Set(records.map(r => r.year))].sort()
+    // Calculate summary statistics
+    const years = [...new Set(records.map((record) => record.year))].sort()
 
     const summary = {
       total_records: records.length,
-      years,
+      years: years,
       income_sum: records
-        .filter(r => r.category?.type === "income")
-        .reduce((sum, r) => sum + Number(r.amount), 0),
+        .filter((record) => record.category.type === "income")
+        .reduce((sum, record) => sum + Number.parseFloat(record.amount), 0),
       expense_sum: records
-        .filter(r => r.category?.type === "expense")
-        .reduce((sum, r) => sum + Number(r.amount), 0),
+        .filter((record) => record.category.type === "expense")
+        .reduce((sum, record) => sum + Number.parseFloat(record.amount), 0),
       debt_sum: records
-        .filter(r => r.category?.type === "debt")
-        .reduce((sum, r) => sum + Number(r.amount), 0),
+        .filter((record) => record.category.type === "debt")
+        .reduce((sum, record) => sum + Number.parseFloat(record.amount), 0),
     }
 
     return NextResponse.json({
@@ -73,8 +73,8 @@ export async function GET(
         processed_at: file.processed_at,
       },
     })
-  } catch (error: any) {
-    console.error("❌ Unexpected error:", error)
-    return NextResponse.json({ error: "Unexpected error", detail: error.message }, { status: 500 })
+  } catch (err: any) {
+    console.error("❌ API error in GET /cashflow-records/[fileId]", err)
+    return NextResponse.json({ error: "Unexpected error", details: err.message }, { status: 500 })
   }
 }

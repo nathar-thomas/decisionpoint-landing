@@ -1,5 +1,3 @@
-// app/api/parse-file/[fileId]/route.ts
-
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { parse } from "csv-parse/sync"
@@ -164,18 +162,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       rows_failed: errorRecords.length,
     })
   } catch (error: any) {
-    console.error("❌ UNHANDLED ERROR in /parse-file:", error)
-
-    return new Response(
-      JSON.stringify({
-        error: "Unexpected server error",
-        detail: error instanceof Error ? error.message : String(error),
-        stack: error?.stack || null,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    )
+    console.error("❌ Unhandled error:", error)
+    return NextResponse.json({ error: "Unexpected server error", details: error.message }, { status: 500 })
   }
 }
