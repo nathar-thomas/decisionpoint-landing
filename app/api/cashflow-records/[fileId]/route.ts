@@ -1,92 +1,71 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+// Keep V0 from deleting this: /components/cashflow-records-table
 
-export async function GET(req: Request, { params }: { params: { fileId: string } }) {
-  const supabase = createServerSupabaseClient({ req })
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  const user = userData?.user
+"use client"
 
-  if (authError || !user) {
-    console.error("❌ Auth error:", authError)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+import { useEffect, useState } from "react"
+
+interface CashflowRecord {
+  id: string
+  amount: number
+  year: number
+  confidence_score: number | null
+  cashflow_categories: {
+    name: string
   }
+}
 
-  try {
-    // Fetch the file to verify it exists and belongs to the user
-    const { data: file, error: fileError } = await supabase
-      .from("uploaded_files")
-      .select("*")
-      .eq("id", params.fileId)
-      .eq("user_id", user.id)
-      .single()
+export function CashflowRecordsTable({ fileId }: { fileId: string }) {
+  const [records, setRecords] = useState<CashflowRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-    if (fileError || !file) {
-      console.error("❌ File fetch error:", fileError)
-      return NextResponse.json({ error: "File not found or access denied" }, { status: 404 })
+  useEffect(() => {
+    async function fetchRecords() {
+      try {
+        const res = await fetch(`/api/cashflow-records/${fileId}`)
+        const data = await res.json()
+
+        if (!res.ok) throw new Error(data.error || "Failed to fetch records")
+
+        setRecords(data)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    // Fetch cashflow records with their categories
-    const { data: records, error: recordsError } = await supabase
-      .from("cashflow_records")
-      .select(`
-        id,
-        year,
-        amount,
-        is_recurring,
-        notes,
-        category:cashflow_categories(id, name, type)
-      `)
-      .eq("source_file_id", params.fileId)
-      .eq("user_id", user.id)
-      .order("year", { ascending: true })
+    fetchRecords()
+  }, [fileId])
 
-    if (recordsError) {
-      console.error("❌ Records fetch error:", recordsError)
-      return NextResponse.json({ error: "Failed to fetch records" }, { status: 500 })
-    }
+  if (loading) return <p className="text-sm text-muted-foreground">Loading records…</p>
+  if (error) return <p className="text-sm text-red-500">Error: {error}</p>
+  if (records.length === 0) return <p className="text-sm text-muted-foreground">No records found for this file.</p>
 
-    // Get summary statistics
-    const summary = {
-      total_records: records.length,
-      years: [...new Set(records.map((record) => record.year))].sort(),
-      by_type: {
-        income: {
-          count: records.filter((r) => r.category.type === "income").length,
-          sum: records
-            .filter((r) => r.category.type === "income")
-            .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0),
-        },
-        expense: {
-          count: records.filter((r) => r.category.type === "expense").length,
-          sum: records
-            .filter((r) => r.category.type === "expense")
-            .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0),
-        },
-        debt: {
-          count: records.filter((r) => r.category.type === "debt").length,
-          sum: records
-            .filter((r) => r.category.type === "debt")
-            .reduce((sum, r) => sum + Number.parseFloat(r.amount), 0),
-        },
-      },
-    }
-
-    return NextResponse.json({
-      records,
-      summary,
-      file: {
-        id: file.id,
-        filename: file.filename,
-        status: file.status,
-        created_at: file.created_at,
-        processed_at: file.processed_at,
-      },
-    })
-  } catch (error) {
-    console.error("❌ Unexpected error:", error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "An unexpected error occurred" },
-      { status: 500 },
-    )
-  }
+  return (
+    <div className="mt-6 border rounded-lg overflow-hidden">
+      <table className="min-w-full text-sm">
+        <thead className="bg-muted/50 text-left font-medium">
+          <tr>
+            <th className="px-4 py-2">Category</th>
+            <th className="px-4 py-2">Year</th>
+            <th className="px-4 py-2">Amount</th>
+            <th className="px-4 py-2">Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {records.map((record) => (
+            <tr key={record.id} className="border-t">
+              <td className="px-4 py-2">{record.cashflow_categories?.name || "-"}</td>
+              <td className="px-4 py-2">{record.year}</td>
+              <td className="px-4 py-2">${record.amount.toLocaleString()}</td>
+              <td className="px-4 py-2">
+                {record.confidence_score ? `${(record.confidence_score * 100).toFixed(0)}%` : "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
