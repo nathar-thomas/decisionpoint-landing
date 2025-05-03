@@ -31,7 +31,15 @@ export function FileUploader() {
         headers: { "Content-Type": "application/json" },
       })
 
-      const data = await response.json()
+      const text = await response.text()
+
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error("Server returned invalid JSON")
+      }
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to parse file")
       }
@@ -39,6 +47,8 @@ export function FileUploader() {
       console.log("✅ Parse complete:", data)
     } catch (error) {
       console.error("❌ Error during parsing:", error)
+      setErrorMessage(error instanceof Error ? error.message : "An unknown parsing error occurred")
+      setFileStatus("error")
     }
   }
 
@@ -102,7 +112,6 @@ export function FileUploader() {
         setFileStatus("success")
         setUploadedFileId(fileRecord.id)
 
-        // 🔁 Auto-trigger file parsing
         await handleParse(fileRecord.id)
       } catch (error) {
         setFileStatus("error")
@@ -170,25 +179,25 @@ export function FileUploader() {
       )}
 
       {fileStatus === "success" && uploadedFileId && (
-      <div className="space-y-4">
-      <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
-        <CheckCircle2 className="h-4 w-4 text-green-600" />
-        <AlertTitle>Success</AlertTitle>
-        <AlertDescription>File uploaded and parsed successfully.</AlertDescription>
-      </Alert>
+        <div className="space-y-4">
+          <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>File uploaded and parsed successfully.</AlertDescription>
+          </Alert>
 
-      <div>
-        <p className="text-sm text-muted-foreground">Parsed Results</p>
-        <CashflowRecordsTable fileId={uploadedFileId} />
-      </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Parsed Results</p>
+            <CashflowRecordsTable fileId={uploadedFileId} />
+          </div>
 
-    <div className="flex justify-end">
-      <Button variant="outline" size="sm" onClick={resetUploader}>
-        Upload Another File
-      </Button>
-    </div>
-  </div>
-)}
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={resetUploader}>
+              Upload Another File
+            </Button>
+          </div>
+        </div>
+      )}
 
       {fileStatus === "error" && (
         <Alert variant="destructive">
