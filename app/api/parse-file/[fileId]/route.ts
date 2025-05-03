@@ -5,8 +5,8 @@ import { NextResponse } from "next/server"
 import { parse } from "csv-parse/sync"
 
 function cleanNumericValue(value: string): number {
-  if (!value) return NaN
-  return parseFloat(value.replace(/[^0-9.-]/g, ""))
+  if (!value) return Number.NaN
+  return Number.parseFloat(value.replace(/[^0-9.-]/g, ""))
 }
 
 function guessCategoryType(name: string): "income" | "expense" | "debt" {
@@ -17,11 +17,8 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
   return "expense"
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { fileId: string } }
-) {
-  const supabase = createServerSupabaseClient({ req })
+export async function POST(req: Request, { params }: { params: { fileId: string } }) {
+  const supabase = createServerSupabaseClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   const user = userData?.user
 
@@ -58,7 +55,7 @@ export async function POST(
   const yearColumns: Record<number, number> = {}
   headers.forEach((col: string, i: number) => {
     const match = col.match(/\b(20\d{2})\b/)
-    if (match) yearColumns[i] = parseInt(match[1])
+    if (match) yearColumns[i] = Number.parseInt(match[1])
   })
 
   if (Object.keys(yearColumns).length === 0) {
