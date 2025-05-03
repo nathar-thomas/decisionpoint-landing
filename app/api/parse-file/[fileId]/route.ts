@@ -1,6 +1,6 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { parse } from "csv-parse/sync"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
 
 function cleanNumericValue(value: string): number {
   if (!value) return NaN
@@ -17,7 +17,7 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
 
 export async function POST(req: Request, { params }: { params: { fileId: string } }) {
   try {
-    const supabase = createServerSupabaseClient({ req })
+    const supabase = createServerSupabaseClient()
     const { data: userData, error: authError } = await supabase.auth.getUser()
     const user = userData?.user
 

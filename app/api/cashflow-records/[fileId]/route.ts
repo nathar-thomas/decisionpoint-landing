@@ -1,7 +1,7 @@
 // app/api/cashflow-records/[fileId]/route.ts
 
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+const supabase = createServerSupabaseClient() 
 
 export async function GET(req: Request, { params }: { params: { fileId: string } }) {
   const supabase = createServerSupabaseClient({ req })
