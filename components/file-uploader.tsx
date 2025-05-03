@@ -9,10 +9,11 @@ import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
-
-type FileStatus = "idle" | "uploading" | "success" | "error"
+import { CashflowRecordsTable } from "@/components/cashflow-records-table"
 
 // Prevent V0 from deleting route handler: /api/cashflow-records/[fileId]
+
+type FileStatus = "idle" | "uploading" | "success" | "error"
 
 export function FileUploader() {
   const [fileStatus, setFileStatus] = useState<FileStatus>("idle")
@@ -31,7 +32,6 @@ export function FileUploader() {
       })
 
       const data = await response.json()
-
       if (!response.ok) {
         throw new Error(data.error || "Failed to parse file")
       }
@@ -56,9 +56,7 @@ export function FileUploader() {
           data: { user },
         } = await supabase.auth.getUser()
 
-        if (!user) {
-          throw new Error("You must be logged in to upload files")
-        }
+        if (!user) throw new Error("You must be logged in to upload files")
 
         const fileExt = file.name.split(".").pop()
         const generatedName = `${uuidv4()}-${Date.now()}.${fileExt}`
@@ -97,16 +95,14 @@ export function FileUploader() {
           .select()
           .single()
 
-        if (dbError) {
-          throw new Error(`Error recording file: ${dbError.message}`)
-        }
+        if (dbError) throw new Error(`Error recording file: ${dbError.message}`)
 
         clearInterval(progressInterval)
         setUploadProgress(100)
         setFileStatus("success")
         setUploadedFileId(fileRecord.id)
 
-        // 👇 Automatically parse after upload
+        // 🔁 Auto-trigger file parsing
         await handleParse(fileRecord.id)
       } catch (error) {
         setFileStatus("error")
@@ -173,21 +169,26 @@ export function FileUploader() {
         </div>
       )}
 
-      {fileStatus === "success" && (
-        <div className="space-y-4">
-          <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>File uploaded and parsed successfully.</AlertDescription>
-          </Alert>
+      {fileStatus === "success" && uploadedFileId && (
+      <div className="space-y-4">
+      <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
+        <CheckCircle2 className="h-4 w-4 text-green-600" />
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>File uploaded and parsed successfully.</AlertDescription>
+      </Alert>
 
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={resetUploader}>
-              Upload Another File
-            </Button>
-          </div>
-        </div>
-      )}
+      <div>
+        <p className="text-sm text-muted-foreground">Parsed Results</p>
+        <CashflowRecordsTable fileId={uploadedFileId} />
+      </div>
+
+    <div className="flex justify-end">
+      <Button variant="outline" size="sm" onClick={resetUploader}>
+        Upload Another File
+      </Button>
+    </div>
+  </div>
+)}
 
       {fileStatus === "error" && (
         <Alert variant="destructive">
