@@ -1,3 +1,5 @@
+// app/api/parse-file/[fileId]/route.ts
+
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { parse } from "csv-parse/sync"
@@ -70,7 +72,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
         .from("entities")
         .insert({
           name: "Unassigned Entity",
-          type: "business", // must match your enum
+          type: "business",
           user_id: user.id,
           metadata: {},
         })
@@ -97,6 +99,10 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
     if (match) yearColumns[i] = parseInt(match[1])
   })
 
+  console.log("📊 CSV Headers:", headers)
+  console.log("📊 Year columns detected:", yearColumns)
+  console.log("📊 Total data rows:", rows.length - 1)
+
   if (Object.keys(yearColumns).length === 0) {
     console.error("❌ No year columns found.")
     return NextResponse.json({ error: "No year columns found." }, { status: 400 })
@@ -107,6 +113,8 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i]
+    console.log("🔍 Row", i, "→", row)
+
     const categoryName = row[categoryCol]?.trim()
 
     if (!categoryName) {
@@ -149,6 +157,8 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       const cleanedValue = cleanNumericValue(rawValue)
       const year = yearColumns[colIndex]
 
+      console.log("🔢 Processing value:", rawValue, "→", cleanedValue, "(year:", year + ")")
+
       if (isNaN(cleanedValue)) {
         errorRecords.push({
           row_number: i,
@@ -172,6 +182,9 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
     }
   }
 
+  console.log("✅ Normalized rows to insert:", normalizedRecords.length)
+  console.log("⚠️ Errors to log:", errorRecords.length)
+
   if (normalizedRecords.length > 0) {
     const { error: insertError } = await supabase.from("cashflow_records").insert(normalizedRecords)
     if (insertError) {
@@ -193,8 +206,6 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
     .from("uploaded_files")
     .update({ status: "processed", processed_at: new Date().toISOString() })
     .eq("id", file.id)
-
-  console.log("✅ Parser complete. Inserted:", normalizedRecords.length, "Failed:", errorRecords.length)
 
   return NextResponse.json({
     message: "Parsed successfully",
