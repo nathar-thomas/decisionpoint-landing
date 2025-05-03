@@ -7,7 +7,7 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
   try {
     console.log("📥 GET /api/cashflow-records called with fileId:", params.fileId)
 
-    const supabase = createServerSupabaseClient({ req })
+    const supabase = createServerSupabaseClient({ req, headers: req.headers })
     const { data: userData, error: authError } = await supabase.auth.getUser()
     const user = userData?.user
 

@@ -17,7 +17,7 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
 
 export async function POST(req: Request, { params }: { params: { fileId: string } }) {
   try {
-    const supabase = createServerSupabaseClient({ req })
+    const supabase = createServerSupabaseClient({ req, headers: req.headers })
 
     console.log("🔁 parse-file called for:", params.fileId)
 
