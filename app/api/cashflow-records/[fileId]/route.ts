@@ -29,12 +29,12 @@ export async function GET(
     return NextResponse.json({ error: "File not found" }, { status: 404 })
   }
 
-  console.log("📄 file.id:", file.id)
-  console.log("🏢 finalEntityId:", finalEntityId)
-
   // 2. Get or fallback to unassigned entity
   const entityId = file.entity_id
   let finalEntityId = entityId
+
+  console.log("📄 file.id:", file.id)
+  console.log("🏢 initial entityId:", entityId)
 
   if (!finalEntityId) {
     const { data: fallback, error: fallbackError } = await supabase
@@ -66,6 +66,6 @@ export async function GET(
   }
 
   console.log("🧾 Records fetched:", JSON.stringify(records, null, 2))
-  
+
   return NextResponse.json({ records })
 }
