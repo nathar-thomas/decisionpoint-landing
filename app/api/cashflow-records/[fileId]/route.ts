@@ -1,10 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET(
-  req: Request,
-  { params }: { params: { fileId: string } }
-) {
+export async function GET(req: Request, { params }: { params: { fileId: string } }) {
   const supabase = createServerSupabaseClient()
 
   const {

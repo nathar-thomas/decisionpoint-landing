@@ -18,21 +18,21 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
 
   useEffect(() => {
     const fetchRecords = async () => {
-  try {
-    const res = await fetch(`/api/cashflow-records/${fileId}`)
-    if (!res.ok) throw new Error("Failed to load cashflow data")
+      try {
+        const res = await fetch(`/api/cashflow-records/${fileId}`)
+        if (!res.ok) throw new Error("Failed to load cashflow data")
 
-    const json = await res.json()
-    console.log("📥 Raw API response:", json)
+        const json = await res.json()
+        console.log("📥 Raw API response:", json)
 
-    const { records } = json
-    setRecords(records)
-  } catch (err: any) {
-    setError(err.message || "Unexpected error")
-  } finally {
-    setLoading(false)
-  }
-}
+        const { records } = json
+        setRecords(records)
+      } catch (err: any) {
+        setError(err.message || "Unexpected error")
+      } finally {
+        setLoading(false)
+      }
+    }
 
     fetchRecords()
   }, [fileId])
@@ -55,7 +55,7 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
         <tbody>
           {records.map((r) => (
             <tr key={r.id} className="border-t hover:bg-gray-50">
-              <td className="px-4 py-2">{r.category?.name || "—"}</td>
+              <td className="px-4 py-2">{r.cashflow_categories?.name || "—"}</td>
               <td className="px-4 py-2">{r.year}</td>
               <td className="px-4 py-2">${r.amount.toLocaleString()}</td>
               <td className="px-4 py-2">{r.is_recurring ? "Yes" : "No"}</td>
