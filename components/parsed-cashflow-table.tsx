@@ -54,7 +54,7 @@ export default function ParsedCashflowTable({ fileId }: { fileId: string }) {
         <tbody>
           {records.map((r) => (
             <tr key={r.id} className="border-t hover:bg-gray-50">
-              <td className="px-4 py-2">{r.cashflow_categories?.name || "—"}</td>
+              <td className="px-4 py-2">{r.category?.name || "—"}</td>
               <td className="px-4 py-2">{r.year}</td>
               <td className="px-4 py-2">${r.amount.toLocaleString()}</td>
               <td className="px-4 py-2">{r.is_recurring ? "Yes" : "No"}</td>
