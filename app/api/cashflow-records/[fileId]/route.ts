@@ -28,25 +28,13 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
     return NextResponse.json({ error: "File not found" }, { status: 404 })
   }
 
-  console.log("📄 Found file:", file.filename, "Status:", file.status)
+  console.log("📄 Found file:", file.filename, "ID:", file.id)
 
-  // Direct query to check if any records exist for this file
-  const { count, error: countError } = await supabase
-    .from("cashflow_records")
-    .select("*", { count: "exact", head: true })
-    .eq("source_file_id", params.fileId)
-
-  if (countError) {
-    console.error("❌ Error counting records:", countError)
-  } else {
-    console.log(`📊 Record count for file: ${count}`)
-  }
-
-  // 3. Fetch matching cashflow records
+  // 3. Fetch matching cashflow records - CRITICAL FIX: Use file.id instead of params.fileId
   const { data: records, error: recordError } = await supabase
     .from("cashflow_records")
-    .select("*") // flat select with no joins
-    .eq("source_file_id", params.fileId)
+    .select("*")
+    .eq("source_file_id", file.id)
     .order("year", { ascending: true })
 
   if (recordError) {
@@ -54,21 +42,35 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
     return NextResponse.json({ error: recordError.message }, { status: 500 })
   }
 
-  // Add console.log to help debug
   console.log("📊 Retrieved records:", records?.length || 0)
 
-  if (records && records.length > 0) {
-    console.log("📊 First record sample:", records[0])
-  } else {
-    // Try a broader query to see if any records exist at all
-    const { data: anyRecords, error: anyError } = await supabase
-      .from("cashflow_records")
-      .select("id, source_file_id")
-      .limit(5)
+  // If no records found, try a direct query without any filters to debug
+  if (!records || records.length === 0) {
+    console.log("⚠️ No records found with file ID filter, trying direct query")
 
-    console.log("🔍 Checking for any records in the table:", anyRecords?.length || 0)
-    if (anyRecords && anyRecords.length > 0) {
-      console.log("📊 Sample records:", anyRecords)
+    // Try a direct query to see if any records exist for this user
+    const { data: directRecords, error: directError } = await supabase
+      .from("cashflow_records")
+      .select("id, source_file_id, year, amount")
+      .eq("user_id", user.id)
+      .limit(10)
+
+    if (directError) {
+      console.error("❌ Error in direct query:", directError)
+    } else {
+      console.log("📊 Direct query found records:", directRecords?.length || 0)
+      if (directRecords && directRecords.length > 0) {
+        console.log("📊 Sample direct records:", directRecords)
+
+        // Check if any of these records match our file ID
+        const matchingRecords = directRecords.filter((r) => r.source_file_id === file.id)
+        console.log("📊 Matching records from direct query:", matchingRecords.length)
+
+        if (matchingRecords.length > 0) {
+          // If we found matching records this way, use them
+          return NextResponse.json({ records: matchingRecords })
+        }
+      }
     }
   }
 

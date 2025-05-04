@@ -1,4 +1,5 @@
 import { FileUploader } from "@/components/file-uploader"
+import { DebugDatabase } from "@/components/debug-database"
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
           <p className="text-muted-foreground md:text-xl">Upload your financial data to analyze your cash flow</p>
         </div>
         <FileUploader />
+        <DebugDatabase />
       </div>
     </main>
   )
