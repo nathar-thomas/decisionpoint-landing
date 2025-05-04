@@ -16,25 +16,16 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // 1. Get uploaded file by fileId
-  const { data: file, error: fileError } = await supabase
-    .from("uploaded_files")
-    .select("*")
-    .eq("id", params.fileId)
-    .single()
+  // CRITICAL FIX: Use the fileId directly from params without any additional lookup
+  // This ensures we're using exactly the same ID that was passed to the component
+  const fileId = params.fileId
+  console.log("📄 Using file ID directly:", fileId)
 
-  if (fileError || !file) {
-    console.error("❌ File fetch error:", fileError)
-    return NextResponse.json({ error: "File not found" }, { status: 404 })
-  }
-
-  console.log("📄 Found file:", file.filename, "ID:", file.id)
-
-  // 3. Fetch matching cashflow records - CRITICAL FIX: Use file.id instead of params.fileId
+  // Fetch matching cashflow records directly with the provided fileId
   const { data: records, error: recordError } = await supabase
     .from("cashflow_records")
     .select("*")
-    .eq("source_file_id", file.id)
+    .eq("source_file_id", fileId)
     .order("year", { ascending: true })
 
   if (recordError) {
@@ -63,7 +54,7 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
         console.log("📊 Sample direct records:", directRecords)
 
         // Check if any of these records match our file ID
-        const matchingRecords = directRecords.filter((r) => r.source_file_id === file.id)
+        const matchingRecords = directRecords.filter((r) => r.source_file_id === fileId)
         console.log("📊 Matching records from direct query:", matchingRecords.length)
 
         if (matchingRecords.length > 0) {

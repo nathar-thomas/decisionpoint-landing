@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useDropzone } from "react-dropzone"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { v4 as uuidv4 } from "uuid"
@@ -22,6 +22,14 @@ export function FileUploader() {
   const [parseStats, setParseStats] = useState<{ rows_inserted: number; rows_failed: number } | null>(null)
 
   const supabase = createClientComponentClient()
+
+  // Store the file ID in localStorage for debugging
+  useEffect(() => {
+    if (uploadedFileId) {
+      localStorage.setItem("lastUploadedFileId", uploadedFileId)
+      console.log("📝 Stored file ID in localStorage:", uploadedFileId)
+    }
+  }, [uploadedFileId])
 
   const handleParse = async (fileId: string) => {
     try {
@@ -121,7 +129,7 @@ export function FileUploader() {
 
         if (dbError) throw new Error(`Error recording file: ${dbError.message}`)
 
-        console.log("✅ File record created:", fileRecord.id)
+        console.log("✅ File record created with ID:", fileRecord.id)
 
         clearInterval(progressInterval)
         setUploadProgress(100)
@@ -137,7 +145,7 @@ export function FileUploader() {
           .select("*", { count: "exact", head: true })
           .eq("source_file_id", fileRecord.id)
 
-        console.log(`📊 Verified record count: ${count}`)
+        console.log(`📊 Verified record count for file ${fileRecord.id}: ${count}`)
       } catch (error) {
         setFileStatus("error")
         setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred")
@@ -225,6 +233,7 @@ export function FileUploader() {
 
           <div>
             <p className="text-sm text-muted-foreground">Parsed Results</p>
+            <div className="text-xs text-gray-500 mb-2">File ID: {uploadedFileId}</div>
             <CashflowRecordsTable fileId={uploadedFileId} />
           </div>
 
