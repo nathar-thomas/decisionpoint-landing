@@ -2,6 +2,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request, { params }: { params: { fileId: string } }) {
+  console.log("🔍 Fetching cashflow records for file ID:", params.fileId)
+
   const supabase = createServerSupabaseClient()
 
   const {
@@ -26,29 +28,25 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
     return NextResponse.json({ error: "File not found" }, { status: 404 })
   }
 
-  // 2. Get or fallback to unassigned entity
-  let finalEntityId = file.entity_id
-  if (!finalEntityId) {
-    const { data: fallback, error: fallbackError } = await supabase
-      .from("entities")
-      .select("id")
-      .eq("name", "Unassigned Entity")
-      .eq("user_id", user.id)
-      .maybeSingle()
+  console.log("📄 Found file:", file.filename, "Status:", file.status)
 
-    if (fallbackError || !fallback) {
-      console.error("❌ No fallback entity found for user:", fallbackError)
-      return NextResponse.json({ error: "No entity assigned" }, { status: 400 })
-    }
+  // Direct query to check if any records exist for this file
+  const { count, error: countError } = await supabase
+    .from("cashflow_records")
+    .select("*", { count: "exact", head: true })
+    .eq("source_file_id", params.fileId)
 
-    finalEntityId = fallback.id
+  if (countError) {
+    console.error("❌ Error counting records:", countError)
+  } else {
+    console.log(`📊 Record count for file: ${count}`)
   }
 
   // 3. Fetch matching cashflow records
   const { data: records, error: recordError } = await supabase
     .from("cashflow_records")
     .select("*") // flat select with no joins
-    .eq("source_file_id", file.id)
+    .eq("source_file_id", params.fileId)
     .order("year", { ascending: true })
 
   if (recordError) {
@@ -58,6 +56,21 @@ export async function GET(req: Request, { params }: { params: { fileId: string }
 
   // Add console.log to help debug
   console.log("📊 Retrieved records:", records?.length || 0)
+
+  if (records && records.length > 0) {
+    console.log("📊 First record sample:", records[0])
+  } else {
+    // Try a broader query to see if any records exist at all
+    const { data: anyRecords, error: anyError } = await supabase
+      .from("cashflow_records")
+      .select("id, source_file_id")
+      .limit(5)
+
+    console.log("🔍 Checking for any records in the table:", anyRecords?.length || 0)
+    if (anyRecords && anyRecords.length > 0) {
+      console.log("📊 Sample records:", anyRecords)
+    }
+  }
 
   return NextResponse.json({ records })
 }

@@ -19,6 +19,7 @@ function guessCategoryType(name: string): "income" | "expense" | "debt" {
 
 export async function POST(req: Request, { params }: { params: { fileId: string } }) {
   const supabase = createServerSupabaseClient()
+  console.log("🔍 Starting parse for file ID:", params.fileId)
 
   const {
     data: { user },
@@ -41,6 +42,8 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
     return NextResponse.json({ error: "File not found" }, { status: 404 })
   }
 
+  console.log("📄 Found file:", file.filename, "Path:", file.file_path)
+
   const { data: fileBlob, error: fileDownloadError } = await supabase.storage
     .from("cashflow-files")
     .download(file.file_path)
@@ -49,6 +52,8 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
     console.error("❌ File download failed:", fileDownloadError)
     return NextResponse.json({ error: "File download failed" }, { status: 500 })
   }
+
+  console.log("✅ File downloaded successfully")
 
   // ⬇️ fallback entity logic
   let fallbackEntityId = file.entity_id
@@ -67,6 +72,7 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
 
     if (fallbackEntity) {
       fallbackEntityId = fallbackEntity.id
+      console.log("🏢 Using existing fallback entity:", fallbackEntityId)
     } else {
       const { data: createdEntity, error: insertEntityError } = await supabase
         .from("entities")
@@ -85,131 +91,156 @@ export async function POST(req: Request, { params }: { params: { fileId: string 
       }
 
       fallbackEntityId = createdEntity.id
+      console.log("🏢 Created new fallback entity:", fallbackEntityId)
     }
   }
 
-  const csvText = await fileBlob.text()
-  const rows = parse(csvText, { skip_empty_lines: true })
-  const headers = rows[0]
-  const categoryCol = 0
+  try {
+    const csvText = await fileBlob.text()
+    console.log("📊 CSV content sample:", csvText.substring(0, 200) + "...")
 
-  const yearColumns: Record<number, number> = {}
-  headers.forEach((col: string, i: number) => {
-    const match = col.match(/\b(20\d{2})\b/)
-    if (match) yearColumns[i] = Number.parseInt(match[1])
-  })
+    const rows = parse(csvText, { skip_empty_lines: true })
+    const headers = rows[0]
+    const categoryCol = 0
 
-  console.log("📊 CSV Headers:", headers)
-  console.log("📊 Year columns detected:", yearColumns)
-  console.log("📊 Total data rows:", rows.length - 1)
+    const yearColumns: Record<number, number> = {}
+    headers.forEach((col: string, i: number) => {
+      const match = col.match(/\b(20\d{2})\b/)
+      if (match) yearColumns[i] = Number.parseInt(match[1])
+    })
 
-  if (Object.keys(yearColumns).length === 0) {
-    console.error("❌ No year columns found.")
-    return NextResponse.json({ error: "No year columns found." }, { status: 400 })
-  }
+    console.log("📊 CSV Headers:", headers)
+    console.log("📊 Year columns detected:", yearColumns)
+    console.log("📊 Total data rows:", rows.length - 1)
 
-  const normalizedRecords: any[] = []
-  const errorRecords: any[] = []
-
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i]
-    console.log("🔍 Row", i, "→", row)
-
-    const categoryName = row[categoryCol]?.trim()
-
-    if (!categoryName) {
-      errorRecords.push({
-        row_number: i,
-        column_name: headers[categoryCol],
-        error_type: "empty_cell",
-        error_message: "Missing category name",
-        raw_value: "",
-      })
-      continue
+    if (Object.keys(yearColumns).length === 0) {
+      console.error("❌ No year columns found.")
+      return NextResponse.json({ error: "No year columns found." }, { status: 400 })
     }
 
-    let { data: category, error: categoryFetchError } = await supabase
-      .from("cashflow_categories")
-      .select("*")
-      .ilike("name", categoryName)
-      .maybeSingle()
+    const normalizedRecords: any[] = []
+    const errorRecords: any[] = []
 
-    if (categoryFetchError) {
-      console.error("❌ Error fetching category:", categoryFetchError)
-    }
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i]
+      console.log("🔍 Row", i, "→", row)
 
-    if (!category) {
-      const newType = guessCategoryType(categoryName)
-      const { data: created, error: insertError } = await supabase
-        .from("cashflow_categories")
-        .insert({ name: categoryName, type: newType, is_system: false })
-        .select()
-        .single()
-      if (insertError) {
-        console.error("❌ Category insert error:", insertError)
-        continue
-      }
-      category = created
-    }
+      const categoryName = row[categoryCol]?.trim()
 
-    for (const colIndex in yearColumns) {
-      const rawValue = row[colIndex]
-      const cleanedValue = cleanNumericValue(rawValue)
-      const year = yearColumns[colIndex]
-
-      console.log("🔢 Processing value:", rawValue, "→", cleanedValue, "(year:", year + ")")
-
-      if (isNaN(cleanedValue)) {
+      if (!categoryName) {
         errorRecords.push({
           row_number: i,
-          column_name: headers[colIndex],
-          error_type: "invalid_number",
-          error_message: `Could not convert value: "${rawValue}"`,
-          raw_value: rawValue,
+          column_name: headers[categoryCol],
+          error_type: "empty_cell",
+          error_message: "Missing category name",
+          raw_value: "",
         })
         continue
       }
 
-      normalizedRecords.push({
+      let { data: category, error: categoryFetchError } = await supabase
+        .from("cashflow_categories")
+        .select("*")
+        .ilike("name", categoryName)
+        .maybeSingle()
+
+      if (categoryFetchError) {
+        console.error("❌ Error fetching category:", categoryFetchError)
+      }
+
+      if (!category) {
+        const newType = guessCategoryType(categoryName)
+        console.log("🏷️ Creating new category:", categoryName, "Type:", newType)
+
+        const { data: created, error: insertError } = await supabase
+          .from("cashflow_categories")
+          .insert({ name: categoryName, type: newType, is_system: false })
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error("❌ Category insert error:", insertError)
+          continue
+        }
+        category = created
+        console.log("✅ Created category:", category.id)
+      }
+
+      for (const colIndex in yearColumns) {
+        const rawValue = row[colIndex]
+        const cleanedValue = cleanNumericValue(rawValue)
+        const year = yearColumns[colIndex]
+
+        console.log("🔢 Processing value:", rawValue, "→", cleanedValue, "(year:", year + ")")
+
+        if (isNaN(cleanedValue)) {
+          errorRecords.push({
+            row_number: i,
+            column_name: headers[colIndex],
+            error_type: "invalid_number",
+            error_message: `Could not convert value: "${rawValue}"`,
+            raw_value: rawValue,
+          })
+          continue
+        }
+
+        normalizedRecords.push({
+          user_id: user.id,
+          entity_id: fallbackEntityId,
+          category_id: category.id,
+          year,
+          amount: cleanedValue,
+          source_file_id: file.id,
+          is_recurring: true,
+        })
+      }
+    }
+
+    console.log("✅ Normalized rows to insert:", normalizedRecords.length)
+    console.log("⚠️ Errors to log:", errorRecords.length)
+
+    if (normalizedRecords.length > 0) {
+      console.log("💾 Inserting records sample:", normalizedRecords.slice(0, 2))
+
+      const { data: insertedData, error: insertError } = await supabase
+        .from("cashflow_records")
+        .insert(normalizedRecords)
+        .select()
+
+      if (insertError) {
+        console.error("❌ Error inserting records:", insertError)
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
+      }
+
+      console.log(`✅ Successfully inserted ${insertedData?.length || 0} records`)
+    }
+
+    if (errorRecords.length > 0) {
+      const enrichedErrors = errorRecords.map((e) => ({
+        ...e,
+        file_id: file.id,
         user_id: user.id,
-        entity_id: fallbackEntityId,
-        category_id: category.id,
-        year,
-        amount: cleanedValue,
-        source_file_id: file.id,
-        is_recurring: true,
-      })
+      }))
+      await supabase.from("parser_errors").insert(enrichedErrors)
     }
+
+    await supabase
+      .from("uploaded_files")
+      .update({ status: "processed", processed_at: new Date().toISOString() })
+      .eq("id", file.id)
+
+    return NextResponse.json({
+      message: "Parsed successfully",
+      rows_inserted: normalizedRecords.length,
+      rows_failed: errorRecords.length,
+    })
+  } catch (error) {
+    console.error("❌ Unexpected error during parsing:", error)
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Unknown parsing error",
+      },
+      { status: 500 },
+    )
   }
-
-  console.log("✅ Normalized rows to insert:", normalizedRecords.length)
-  console.log("⚠️ Errors to log:", errorRecords.length)
-
-  if (normalizedRecords.length > 0) {
-    const { error: insertError } = await supabase.from("cashflow_records").insert(normalizedRecords)
-    if (insertError) {
-      console.error("❌ Error inserting records:", insertError)
-      return NextResponse.json({ error: insertError.message }, { status: 500 })
-    }
-  }
-
-  if (errorRecords.length > 0) {
-    const enrichedErrors = errorRecords.map((e) => ({
-      ...e,
-      file_id: file.id,
-      user_id: user.id,
-    }))
-    await supabase.from("parser_errors").insert(enrichedErrors)
-  }
-
-  await supabase
-    .from("uploaded_files")
-    .update({ status: "processed", processed_at: new Date().toISOString() })
-    .eq("id", file.id)
-
-  return NextResponse.json({
-    message: "Parsed successfully",
-    rows_inserted: normalizedRecords.length,
-    rows_failed: errorRecords.length,
-  })
 }

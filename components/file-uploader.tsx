@@ -11,8 +11,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { CashflowRecordsTable } from "@/components/cashflow-records-table"
 
-// Prevent V0 from deleting route handler: /api/cashflow-records/[fileId]
-
 type FileStatus = "idle" | "uploading" | "success" | "error"
 
 export function FileUploader() {
@@ -21,22 +19,27 @@ export function FileUploader() {
   const [uploadProgress, setUploadProgress] = useState<number>(0)
   const [fileName, setFileName] = useState<string>("")
   const [uploadedFileId, setUploadedFileId] = useState<string | null>(null)
+  const [parseStats, setParseStats] = useState<{ rows_inserted: number; rows_failed: number } | null>(null)
 
   const supabase = createClientComponentClient()
 
   const handleParse = async (fileId: string) => {
     try {
+      console.log("🔄 Starting parse for file ID:", fileId)
+
       const response = await fetch(`/api/parse-file/${fileId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       })
 
       const text = await response.text()
+      console.log("📥 Raw parse response:", text)
 
       let data
       try {
         data = JSON.parse(text)
-      } catch {
+      } catch (e) {
+        console.error("❌ Failed to parse JSON response:", e)
         throw new Error("Server returned invalid JSON")
       }
 
@@ -45,10 +48,17 @@ export function FileUploader() {
       }
 
       console.log("✅ Parse complete:", data)
+      setParseStats({
+        rows_inserted: data.rows_inserted || 0,
+        rows_failed: data.rows_failed || 0,
+      })
+
+      return data
     } catch (error) {
       console.error("❌ Error during parsing:", error)
       setErrorMessage(error instanceof Error ? error.message : "An unknown parsing error occurred")
       setFileStatus("error")
+      throw error
     }
   }
 
@@ -60,6 +70,8 @@ export function FileUploader() {
       setFileName(file.name)
       setFileStatus("uploading")
       setUploadProgress(0)
+      setErrorMessage("")
+      setParseStats(null)
 
       try {
         const {
@@ -72,12 +84,12 @@ export function FileUploader() {
         const generatedName = `${uuidv4()}-${Date.now()}.${fileExt}`
         const filePath = `${user.id}/${generatedName}`
 
-        const { error: uploadError } = await supabase.storage
-          .from("cashflow-files")
-          .upload(filePath, file, {
-            cacheControl: "3600",
-            upsert: false,
-          })
+        console.log("📤 Uploading file:", file.name, "to path:", filePath)
+
+        const { error: uploadError } = await supabase.storage.from("cashflow-files").upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        })
 
         if (uploadError) {
           throw new Error(`Error uploading file: ${uploadError.message}`)
@@ -93,6 +105,8 @@ export function FileUploader() {
           })
         }, 100)
 
+        console.log("✅ File uploaded, creating database record")
+
         const { data: fileRecord, error: dbError } = await supabase
           .from("uploaded_files")
           .insert({
@@ -107,18 +121,30 @@ export function FileUploader() {
 
         if (dbError) throw new Error(`Error recording file: ${dbError.message}`)
 
+        console.log("✅ File record created:", fileRecord.id)
+
         clearInterval(progressInterval)
         setUploadProgress(100)
         setFileStatus("success")
         setUploadedFileId(fileRecord.id)
 
+        // Parse the file
         await handleParse(fileRecord.id)
+
+        // Verify records were created
+        const { count } = await supabase
+          .from("cashflow_records")
+          .select("*", { count: "exact", head: true })
+          .eq("source_file_id", fileRecord.id)
+
+        console.log(`📊 Verified record count: ${count}`)
       } catch (error) {
         setFileStatus("error")
         setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred")
+        console.error("❌ Upload/parse error:", error)
       }
     },
-    [supabase]
+    [supabase],
   )
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
@@ -136,6 +162,7 @@ export function FileUploader() {
     setFileStatus("idle")
     setUploadProgress(0)
     setUploadedFileId(null)
+    setParseStats(null)
   }
 
   return (
@@ -183,7 +210,17 @@ export function FileUploader() {
           <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertTitle>Success</AlertTitle>
-            <AlertDescription>File uploaded and parsed successfully.</AlertDescription>
+            <AlertDescription>
+              File uploaded and parsed successfully.
+              {parseStats && (
+                <div className="mt-2 text-sm">
+                  <div>Records inserted: {parseStats.rows_inserted}</div>
+                  {parseStats.rows_failed > 0 && (
+                    <div className="text-amber-600">Records failed: {parseStats.rows_failed}</div>
+                  )}
+                </div>
+              )}
+            </AlertDescription>
           </Alert>
 
           <div>
