@@ -1,6 +1,7 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 
 export default async function Dashboard() {
   const supabase = createServerComponentClient({ cookies })
@@ -25,6 +26,11 @@ export default async function Dashboard() {
           Welcome, <span className="font-medium">{user?.email}</span>!
         </p>
         <p className="text-muted-foreground">You are now signed in.</p>
+        <div className="mt-4">
+          <Link href="/cashflow" className="text-primary hover:underline">
+            Go to Cash Flow Analyzer
+          </Link>
+        </div>
       </div>
     </div>
   )

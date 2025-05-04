@@ -1,3 +1,6 @@
+// This API endpoint is used by the new CashflowAnalyzer component
+// and should not be removed during cleanup
+
 // app/api/parse-file/[fileId]/route.ts
 
 import { createServerSupabaseClient } from "@/lib/supabase/server"
