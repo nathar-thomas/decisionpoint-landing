@@ -35,16 +35,32 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
       setError(null)
       console.time("Cashflow data fetch")
 
-      // Fetch file details
-      const { data: fileData, error: fileError } = await supabase
-        .from("uploaded_files")
-        .select("*")
-        .eq("id", fileId)
-        .single()
+      // 🔍 Start: Log the fileId being queried
+      console.log(`🔍 Fetching file with ID: ${fileId}`)
 
+      // Fetch file details - UPDATED to remove .single()
+      const { data: fileData, error: fileError } = await supabase.from("uploaded_files").select("*").eq("id", fileId)
+
+      // 📊 After query: Log data and error
+      console.log(`📊 File query result:`, { data: fileData, error: fileError })
+
+      // Handle Supabase query errors
       if (fileError) {
+        console.log(`⚠️ Supabase query failed:`, fileError)
         throw new Error(`Error fetching file: ${fileError.message}`)
       }
+
+      // Handle no results case
+      if (!fileData || fileData.length === 0) {
+        console.log(`❌ File not found with ID: ${fileId}`)
+        throw new Error(`File with ID ${fileId} not found`)
+      }
+
+      // Extract the first file (should be the only one if ID is unique)
+      const file = fileData[0] as UploadedFile
+
+      // ✅ Success: Log file metadata
+      console.log(`✅ File found:`, file)
 
       // Fetch all cashflow records for this file
       const { data: records, error: recordsError } = await supabase
@@ -54,6 +70,7 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
         .order("year", { ascending: true })
 
       if (recordsError) {
+        console.log(`⚠️ Error fetching records:`, recordsError)
         throw new Error(`Error fetching records: ${recordsError.message}`)
       }
 
@@ -63,13 +80,14 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
       const { data: categories, error: categoriesError } = await supabase.from("cashflow_categories").select("*")
 
       if (categoriesError) {
+        console.log(`⚠️ Error fetching categories:`, categoriesError)
         throw new Error(`Error fetching categories: ${categoriesError.message}`)
       }
 
       console.log("🏷️ Categories:", categories)
 
       // Transform the data
-      const transformedData = transformCashflowData(records, categories, fileData)
+      const transformedData = transformCashflowData(records, categories, file)
       console.log("🔄 Transformed data:", transformedData)
 
       setData(transformedData)
