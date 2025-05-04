@@ -68,6 +68,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <div className="flex items-center gap-4">
+            {/* Add link to unified uploader */}
+            <Link href="/unified-uploader" className="text-sm hover:text-primary">
+              Unified Uploader
+            </Link>
+
             {isLoading ? (
               <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
             ) : user ? (
