@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { LogOut, LogIn } from "lucide-react"
+import { LogOut, LogIn, BarChart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -68,9 +68,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <div className="flex items-center gap-4">
-            {/* Add link to unified uploader */}
-            <Link href="/unified-uploader" className="text-sm hover:text-primary">
-              Unified Uploader
+            <Link
+              href="/cashflow"
+              className={`flex items-center text-sm hover:text-primary transition-colors ${
+                pathname === "/cashflow" ? "text-primary font-medium" : ""
+              }`}
+            >
+              <BarChart className="mr-1 h-4 w-4" />
+              Cashflow Analyzer
             </Link>
 
             {isLoading ? (
