@@ -12,6 +12,7 @@ export interface PivotTableProps {
   debugEmpty?: boolean
   // Display options
   showHeaders?: boolean
+  showSummaryCards?: boolean
   className?: string
 }
 
