@@ -4,7 +4,17 @@ import { useState, useCallback, useEffect } from "react"
 import { useDropzone } from "react-dropzone"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { v4 as uuidv4 } from "uuid"
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2, RefreshCw, FileText } from "lucide-react"
+import {
+  Upload,
+  FileSpreadsheet,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  RefreshCw,
+  FileText,
+  BarChart2,
+} from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -41,6 +51,7 @@ export function CashflowAnalyzer() {
   const [years, setYears] = useState<number[]>([])
   const [categoryNames, setCategoryNames] = useState<string[]>([])
 
+  const router = useRouter()
   const supabase = createClientComponentClient()
 
   // Fetch categories once
@@ -280,6 +291,14 @@ export function CashflowAnalyzer() {
     setError(null)
   }
 
+  // Navigate to analysis page
+  const handleViewAnalysis = () => {
+    console.log("🔍 Navigating to analysis page for file:", fileId)
+    if (fileId) {
+      router.push(`/cashflow-analysis/${fileId}`)
+    }
+  }
+
   // Calculate totals for each year
   const calculateYearTotals = () => {
     const totals: Record<number, number> = {}
@@ -408,9 +427,17 @@ export function CashflowAnalyzer() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
-              <Button variant="outline" size="sm" onClick={resetAnalyzer}>
-                Upload Another File
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={resetAnalyzer}>
+                  Upload Another File
+                </Button>
+                {fileId && (
+                  <Button size="sm" onClick={handleViewAnalysis}>
+                    <BarChart2 className="mr-2 h-4 w-4" />
+                    View Detailed Analysis
+                  </Button>
+                )}
+              </div>
             </div>
 
             {records.length > 0 ? (
