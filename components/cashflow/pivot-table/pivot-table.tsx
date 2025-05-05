@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { PivotEmptyState } from "./pivot-empty-state"
+import { PivotCell } from "./pivot-cell"
 import type { PivotTableProps } from "@/types/pivot-table"
 import { cn } from "@/lib/utils"
 
@@ -14,7 +15,7 @@ export function PivotTable({ data, debugEmpty = false, showHeaders = true, class
     const hasValidData =
       data && data.years && data.years.length > 0 && data.categoryNames && data.categoryNames.length > 0
 
-    console.log("📦 PivotTable data check", {
+    console.log("📊 PivotTable data check", {
       hasValidData,
       yearCount: data?.years?.length || 0,
       categoryCount: data?.categoryNames?.length || 0,
@@ -26,7 +27,7 @@ export function PivotTable({ data, debugEmpty = false, showHeaders = true, class
   // For debugging, allow forcing empty state
   const showEmptyState = debugEmpty || !hasData
 
-  console.log("📦 PivotTable rendering", {
+  console.log("📊 PivotTable rendering", {
     showEmptyState,
     debugEmpty,
     hasData,
@@ -39,16 +40,67 @@ export function PivotTable({ data, debugEmpty = false, showHeaders = true, class
     return <PivotEmptyState className={className} />
   }
 
-  // This is a placeholder for the real data rendering that will be implemented in Sprint 2B
-  // In Sprint 2A, we're focusing only on the empty state and component structure
+  // Now we're rendering real data
+  const { years, categoryNames, byCategory, categories } = data!
+
+  // Log the data we're working with
+  console.log("📊 PivotTable rendering with data", {
+    years,
+    categoryCount: categoryNames.length,
+    sampleCategory: categoryNames[0],
+    sampleData: byCategory[categoryNames[0]],
+  })
+
   return (
     <div className={cn("space-y-4", className)}>
       <div className="overflow-x-auto">
-        <div className="bg-green-50 text-green-800 p-4 rounded-md text-center text-sm">
-          Real data rendering will be implemented in Sprint 2B.
-          <br />
-          The table has valid data to display, but the rendering is not yet implemented.
-        </div>
+        <table className="min-w-full border-collapse" role="table">
+          <thead>
+            <tr>
+              <th
+                scope="col"
+                className="py-3 px-4 text-left text-sm font-medium text-muted-foreground sticky left-0 bg-background border-b"
+              >
+                Category
+              </th>
+              {years.map((year) => (
+                <th
+                  key={year}
+                  scope="col"
+                  className="py-3 px-6 text-left text-sm font-medium text-muted-foreground border-b"
+                >
+                  {year}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {categoryNames.map((categoryName) => {
+              // Find the category type if available
+              const categoryId = Object.keys(categories || {}).find((id) => categories?.[id]?.name === categoryName)
+              const categoryType = categoryId ? categories?.[categoryId]?.type : undefined
+
+              console.log(`📊 Rendering row for category: ${categoryName}`, {
+                categoryType,
+                yearData: byCategory[categoryName],
+              })
+
+              return (
+                <tr key={categoryName} className="hover:bg-muted/50">
+                  <th scope="row" className={cn("py-4 px-4 text-sm font-medium sticky left-0 bg-background border-b")}>
+                    {categoryName}
+                  </th>
+                  {years.map((year) => {
+                    const value = byCategory[categoryName]?.[year]
+                    console.log(`📊 Cell value for ${categoryName}, ${year}:`, value)
+
+                    return <PivotCell key={`${categoryName}-${year}`} value={value} categoryType={categoryType} />
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )
