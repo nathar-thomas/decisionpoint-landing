@@ -39,11 +39,7 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
       console.log(`[Supabase] Fetching file with ID: ${fileId}`)
 
       // Fetch file details - Check if file exists and is not deleted
-      const { data: fileData, error: fileError } = await supabase
-        .from("uploaded_files")
-        .select("*")
-        .eq("id", fileId)
-        .or("(is_deleted.is.null,is_deleted.eq.false)")
+      const { data: fileData, error: fileError } = await supabase.from("uploaded_files").select("*").eq("id", fileId)
 
       // 📊 After query: Log data and error
       console.log(`[Supabase] File query result:`, {
@@ -63,47 +59,57 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
         throw new Error(`File with ID ${fileId} not found or has been deleted`)
       }
 
-      // Extract the first file (should be the only one if ID is unique)
-      const file = fileData[0] as UploadedFile
+      if (fileData && fileData.length > 0) {
+        // Filter out deleted files client-side
+        const filteredFileData = fileData.filter((file) => file.is_deleted === false || file.is_deleted === null)
 
-      // ✅ Success: Log file metadata
-      console.log(`[Supabase] File found:`, {
-        id: file.id,
-        filename: file.filename,
-        status: file.status,
-        is_deleted: file.is_deleted,
-      })
+        if (filteredFileData.length === 0) {
+          console.log(`[Supabase] File with ID ${fileId} exists but is marked as deleted`)
+          throw new Error(`File with ID ${fileId} has been deleted`)
+        }
 
-      // Fetch all cashflow records for this file
-      const { data: records, error: recordsError } = await supabase
-        .from("cashflow_records")
-        .select("*")
-        .eq("source_file_id", fileId)
-        .order("year", { ascending: true })
+        // Continue with the first non-deleted file
+        const file = filteredFileData[0] as UploadedFile
 
-      if (recordsError) {
-        console.log(`⚠️ Error fetching records:`, recordsError)
-        throw new Error(`Error fetching records: ${recordsError.message}`)
+        // Log file details
+        console.log(`[Supabase] File found:`, {
+          id: file.id,
+          filename: file.filename,
+          status: file.status,
+          is_deleted: file.is_deleted,
+        })
+
+        // Fetch all cashflow records for this file
+        const { data: records, error: recordsError } = await supabase
+          .from("cashflow_records")
+          .select("*")
+          .eq("source_file_id", fileId)
+          .order("year", { ascending: true })
+
+        if (recordsError) {
+          console.log(`⚠️ Error fetching records:`, recordsError)
+          throw new Error(`Error fetching records: ${recordsError.message}`)
+        }
+
+        console.log("📊 Raw cashflow records:", records)
+
+        // Fetch all categories
+        const { data: categories, error: categoriesError } = await supabase.from("cashflow_categories").select("*")
+
+        if (categoriesError) {
+          console.log(`⚠️ Error fetching categories:`, categoriesError)
+          throw new Error(`Error fetching categories: ${categoriesError.message}`)
+        }
+
+        console.log("🏷️ Categories:", categories)
+
+        // Transform the data
+        const transformedData = transformCashflowData(records, categories, file)
+        console.log("🔄 Transformed data:", transformedData)
+
+        setData(transformedData)
+        console.timeEnd("[Supabase] Cashflow data fetch")
       }
-
-      console.log("📊 Raw cashflow records:", records)
-
-      // Fetch all categories
-      const { data: categories, error: categoriesError } = await supabase.from("cashflow_categories").select("*")
-
-      if (categoriesError) {
-        console.log(`⚠️ Error fetching categories:`, categoriesError)
-        throw new Error(`Error fetching categories: ${categoriesError.message}`)
-      }
-
-      console.log("🏷️ Categories:", categories)
-
-      // Transform the data
-      const transformedData = transformCashflowData(records, categories, file)
-      console.log("🔄 Transformed data:", transformedData)
-
-      setData(transformedData)
-      console.timeEnd("[Supabase] Cashflow data fetch")
     } catch (err) {
       console.error("❌ Error in useCashflowAnalysis:", err)
       setError(err instanceof Error ? err : new Error(String(err)))

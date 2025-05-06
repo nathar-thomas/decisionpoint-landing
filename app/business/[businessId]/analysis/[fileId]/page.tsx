@@ -34,12 +34,7 @@ export default function BusinessAnalysisWithFileIdPage({
     const checkFileStatus = async () => {
       try {
         console.log(`[Supabase] Checking status of file: ${fileId}`)
-        const { data, error } = await supabase
-          .from("uploaded_files")
-          .select("is_deleted")
-          .eq("id", fileId)
-          .or("(is_deleted.is.null,is_deleted.eq.false)")
-          .single()
+        const { data, error } = await supabase.from("uploaded_files").select("is_deleted").eq("id", fileId).single()
 
         if (error) {
           console.error("[Supabase] Error checking file status:", error)
@@ -50,6 +45,7 @@ export default function BusinessAnalysisWithFileIdPage({
 
         console.log(`[Supabase] File status check result:`, data)
 
+        // Client-side check for is_deleted
         if (data && data.is_deleted === true) {
           console.log("[Supabase] Current file is deleted, need to fallback")
           setIsFileDeleted(true)

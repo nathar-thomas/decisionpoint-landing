@@ -9,6 +9,7 @@ interface FileInfo {
   filename: string
   created_at: string
   processed_at: string | null
+  is_deleted?: boolean | null
 }
 
 export function useLastAnalyzedFile(businessId: string) {
@@ -62,23 +63,28 @@ export function useLastAnalyzedFile(businessId: string) {
 
       console.log("[Supabase] Fetching recent files for user:", userData.user.id)
 
+      // Step 1: Basic query without complex filters
       const { data, error } = await supabase
         .from("uploaded_files")
-        .select("id, filename, created_at, processed_at")
+        .select("id, filename, created_at, processed_at, is_deleted")
         .eq("user_id", userData.user.id)
         .eq("status", "processed")
-        .or("(is_deleted.is.null,is_deleted.eq.false)")
         .order("processed_at", { ascending: false })
-        .limit(10)
 
       if (error) {
         console.error("[Supabase] Error fetching recent files:", error)
         throw error
       }
 
-      console.log(`[Supabase] Loaded ${data?.length || 0} recent processed files (excluding deleted)`)
-      setRecentFiles(data || [])
-      return data && data.length > 0 ? data[0].id : null
+      console.log(`[Supabase] Retrieved ${data?.length || 0} processed files`)
+
+      // Step 2: Apply client-side filtering for is_deleted
+      const filteredData = data?.filter((file) => file.is_deleted === false || file.is_deleted === null)
+
+      console.log(`[Supabase] After filtering: ${filteredData?.length || 0} non-deleted processed files`)
+
+      setRecentFiles(filteredData || [])
+      return filteredData && filteredData.length > 0 ? filteredData[0].id : null
     } catch (error) {
       console.error("[Supabase] Error in fetchRecentFiles:", error)
       return null

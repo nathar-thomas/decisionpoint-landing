@@ -35,7 +35,7 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
     fetchFiles()
   }, [supabase])
 
-  // Update the fetchFiles function with the corrected .or() syntax and add logging
+  // Replace the fetchFiles function with this simplified version that uses client-side filtering
 
   const fetchFiles = async () => {
     try {
@@ -46,35 +46,35 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
 
       console.log("[Supabase] Fetching files for user:", userData.user.id)
 
-      // First, let's check what values exist in the is_deleted column with a direct query
-      // This will help us validate if the query is working correctly
-      const { data: checkData, error: checkError } = await supabase
-        .from("uploaded_files")
-        .select("id, filename, is_deleted")
-        .eq("user_id", userData.user.id)
-        .limit(10)
+      // Step 1: Baseline query - minimal select to confirm table access
+      const { data: allData, error: basicError } = await supabase.from("uploaded_files").select("*")
 
-      if (checkError) {
-        console.error("[Supabase] Error checking is_deleted values:", checkError)
-      } else {
-        console.log("[Supabase] Sample documents with is_deleted values:", checkData)
+      if (basicError) {
+        console.error("[Supabase] Error with baseline query:", basicError)
+        throw basicError
       }
 
-      // Now fetch all non-deleted files with the corrected filter syntax
-      const { data, error } = await supabase
-        .from("uploaded_files")
-        .select("*")
-        .eq("user_id", userData.user.id)
-        .or("(is_deleted.is.null,is_deleted.eq.false)")
-        .order("created_at", { ascending: false })
+      console.log(`[Supabase] Baseline query successful - retrieved ${allData?.length || 0} total documents`)
+
+      // Log sample rows to inspect is_deleted values
+      console.log("[Supabase] Sample document rows:", allData?.slice(0, 3))
+
+      // Step 2: Query with user filter
+      const { data, error } = await supabase.from("uploaded_files").select("*").eq("user_id", userData.user.id)
 
       if (error) {
-        console.error("[Supabase] Error fetching uploaded files:", error)
+        console.error("[Supabase] Error fetching user's uploaded files:", error)
         throw error
       }
 
-      console.log(`[Supabase] Loaded ${data?.length || 0} uploaded files (excluding deleted)`)
-      setUploadedFiles(data || [])
+      console.log(`[Supabase] Retrieved ${data?.length || 0} documents for user`)
+
+      // Step 3: Apply client-side filtering for is_deleted
+      const filteredData = data?.filter((file) => file.is_deleted === false || file.is_deleted === null)
+
+      console.log(`[Supabase] After client-side filtering: ${filteredData?.length || 0} non-deleted documents`)
+
+      setUploadedFiles(filteredData || [])
     } catch (err) {
       console.error("[Supabase] Error in fetchFiles:", err)
     } finally {
