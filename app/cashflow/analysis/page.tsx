@@ -45,11 +45,7 @@ export default function AnalysisPage() {
         <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
       </div>
 
-      <EmptyTableState
-        message="No financial data available"
-        actionLabel="Upload File"
-        onAction={() => router.push("/cashflow/tasks")}
-      />
+      <EmptyTableState message="No financial data available" />
     </div>
   )
 }

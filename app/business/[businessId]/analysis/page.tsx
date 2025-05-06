@@ -61,11 +61,7 @@ export default function BusinessAnalysisPage() {
           <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
         </div>
 
-        <EmptyTableState
-          message="No financial data available for analysis"
-          actionLabel="Upload File"
-          onAction={() => router.push(`/business/${businessId}/tasks`)}
-        />
+        <EmptyTableState message="No financial data available for analysis" />
       </div>
     </div>
   )

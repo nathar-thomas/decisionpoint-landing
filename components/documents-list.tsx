@@ -95,10 +95,24 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
     try {
       console.log(`Soft deleting document: ${fileId}`)
 
-      // Update the document with is_deleted=true
-      const { error } = await supabase.from("uploaded_files").update({ is_deleted: true }).eq("id", fileId)
+      // Add detailed logging to track the update operation
+      console.log("[Supabase] Attempting to update document with is_deleted=true")
 
-      if (error) throw error
+      // Update the document with is_deleted=true
+      // Adding .select() and .single() to get proper error handling
+      const { data, error } = await supabase
+        .from("uploaded_files")
+        .update({ is_deleted: true })
+        .eq("id", fileId)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[Supabase] Error updating document:", error)
+        throw error
+      }
+
+      console.log("[Supabase] Document updated successfully:", data)
 
       // Update local state to remove the document
       setUploadedFiles(uploadedFiles.filter((file) => file.id !== fileId))
