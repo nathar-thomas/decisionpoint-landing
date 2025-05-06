@@ -35,6 +35,8 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
     fetchFiles()
   }, [supabase])
 
+  // Update the fetchFiles function with the corrected .or() syntax and add logging
+
   const fetchFiles = async () => {
     try {
       setIsLoading(true)
@@ -42,9 +44,10 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
 
       if (!userData.user) return
 
-      console.log("Fetching files for user:", userData.user.id)
+      console.log("[Supabase] Fetching files for user:", userData.user.id)
 
-      // First, let's check what values exist in the is_deleted column
+      // First, let's check what values exist in the is_deleted column with a direct query
+      // This will help us validate if the query is working correctly
       const { data: checkData, error: checkError } = await supabase
         .from("uploaded_files")
         .select("id, filename, is_deleted")
@@ -52,25 +55,28 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
         .limit(10)
 
       if (checkError) {
-        console.error("Error checking is_deleted values:", checkError)
+        console.error("[Supabase] Error checking is_deleted values:", checkError)
       } else {
-        console.log("Sample documents with is_deleted values:", checkData)
+        console.log("[Supabase] Sample documents with is_deleted values:", checkData)
       }
 
-      // Now fetch all non-deleted files with a more explicit filter
+      // Now fetch all non-deleted files with the corrected filter syntax
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("*")
         .eq("user_id", userData.user.id)
-        .or(`is_deleted.is.null,is_deleted.eq.false`)
+        .or("(is_deleted.is.null,is_deleted.eq.false)")
         .order("created_at", { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error("[Supabase] Error fetching uploaded files:", error)
+        throw error
+      }
 
-      console.log(`Found ${data?.length || 0} non-deleted files`)
+      console.log(`[Supabase] Loaded ${data?.length || 0} uploaded files (excluding deleted)`)
       setUploadedFiles(data || [])
     } catch (err) {
-      console.error("Error fetching uploaded files:", err)
+      console.error("[Supabase] Error in fetchFiles:", err)
     } finally {
       setIsLoading(false)
     }

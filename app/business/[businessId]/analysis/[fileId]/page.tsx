@@ -33,29 +33,51 @@ export default function BusinessAnalysisWithFileIdPage({
     // Check if the current file is deleted
     const checkFileStatus = async () => {
       try {
-        const { data, error } = await supabase.from("uploaded_files").select("is_deleted").eq("id", fileId).single()
+        console.log(`[Supabase] Checking status of file: ${fileId}`)
+        const { data, error } = await supabase
+          .from("uploaded_files")
+          .select("is_deleted")
+          .eq("id", fileId)
+          .or("(is_deleted.is.null,is_deleted.eq.false)")
+          .single()
 
-        if (error || (data && data.is_deleted)) {
-          console.log("Current file is deleted or doesn't exist, need to fallback")
+        if (error) {
+          console.error("[Supabase] Error checking file status:", error)
           setIsFileDeleted(true)
+          handleFallback()
+          return
+        }
 
-          // Find the next available file
-          if (recentFiles.length > 0) {
-            const nextFileId = recentFiles[0].id
-            console.log(`Falling back to next available file: ${nextFileId}`)
-            navigateToAnalysis(nextFileId)
-          } else {
-            // No files available, redirect to the analysis page without fileId
-            console.log("No files available, redirecting to analysis page")
-            router.push(`/business/${businessId}/analysis`)
-          }
+        console.log(`[Supabase] File status check result:`, data)
+
+        if (data && data.is_deleted === true) {
+          console.log("[Supabase] Current file is deleted, need to fallback")
+          setIsFileDeleted(true)
+          handleFallback()
         } else {
           // File exists and is not deleted
+          console.log("[Supabase] File exists and is not deleted")
           saveLastFile(fileId)
           setSelectedFileId(fileId)
         }
       } catch (err) {
-        console.error("Error checking file status:", err)
+        console.error("[Supabase] Error in checkFileStatus:", err)
+        setIsFileDeleted(true)
+        handleFallback()
+      }
+    }
+
+    // Add a helper function to handle fallback logic
+    const handleFallback = () => {
+      // Find the next available file
+      if (recentFiles.length > 0) {
+        const nextFileId = recentFiles[0].id
+        console.log(`[Supabase] Falling back to next available file: ${nextFileId}`)
+        navigateToAnalysis(nextFileId)
+      } else {
+        // No files available, redirect to the analysis page without fileId
+        console.log("[Supabase] No files available, redirecting to analysis page")
+        router.push(`/business/${businessId}/analysis`)
       }
     }
 

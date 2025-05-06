@@ -33,30 +33,33 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
     try {
       setIsLoading(true)
       setError(null)
-      console.time("Cashflow data fetch")
+      console.time("[Supabase] Cashflow data fetch")
 
       // 🔍 Start: Log the fileId being queried
-      console.log(`🔍 Fetching file with ID: ${fileId}`)
+      console.log(`[Supabase] Fetching file with ID: ${fileId}`)
 
       // Fetch file details - Check if file exists and is not deleted
       const { data: fileData, error: fileError } = await supabase
         .from("uploaded_files")
         .select("*")
         .eq("id", fileId)
-        .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
+        .or("(is_deleted.is.null,is_deleted.eq.false)")
 
       // 📊 After query: Log data and error
-      console.log(`📊 File query result:`, { data: fileData, error: fileError })
+      console.log(`[Supabase] File query result:`, {
+        count: fileData?.length || 0,
+        error: fileError ? fileError.message : null,
+      })
 
       // Handle Supabase query errors
       if (fileError) {
-        console.log(`⚠️ Supabase query failed:`, fileError)
+        console.log(`[Supabase] Query failed:`, fileError)
         throw new Error(`Error fetching file: ${fileError.message}`)
       }
 
       // Handle no results case
       if (!fileData || fileData.length === 0) {
-        console.log(`❌ File not found with ID: ${fileId} or is deleted`)
+        console.log(`[Supabase] File not found with ID: ${fileId} or has been deleted`)
         throw new Error(`File with ID ${fileId} not found or has been deleted`)
       }
 
@@ -64,7 +67,12 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
       const file = fileData[0] as UploadedFile
 
       // ✅ Success: Log file metadata
-      console.log(`✅ File found:`, file)
+      console.log(`[Supabase] File found:`, {
+        id: file.id,
+        filename: file.filename,
+        status: file.status,
+        is_deleted: file.is_deleted,
+      })
 
       // Fetch all cashflow records for this file
       const { data: records, error: recordsError } = await supabase
@@ -95,7 +103,7 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
       console.log("🔄 Transformed data:", transformedData)
 
       setData(transformedData)
-      console.timeEnd("Cashflow data fetch")
+      console.timeEnd("[Supabase] Cashflow data fetch")
     } catch (err) {
       console.error("❌ Error in useCashflowAnalysis:", err)
       setError(err instanceof Error ? err : new Error(String(err)))

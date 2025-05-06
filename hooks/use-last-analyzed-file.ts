@@ -60,23 +60,27 @@ export function useLastAnalyzedFile(businessId: string) {
 
       if (!userData.user) return null
 
-      console.log("Fetching recent files with is_deleted=false filter")
+      console.log("[Supabase] Fetching recent files for user:", userData.user.id)
+
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("id, filename, created_at, processed_at")
         .eq("user_id", userData.user.id)
         .eq("status", "processed")
-        .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
+        .or("(is_deleted.is.null,is_deleted.eq.false)")
         .order("processed_at", { ascending: false })
         .limit(10)
 
-      if (error) throw error
+      if (error) {
+        console.error("[Supabase] Error fetching recent files:", error)
+        throw error
+      }
 
-      console.log(`Found ${data?.length || 0} recent non-deleted files`)
+      console.log(`[Supabase] Loaded ${data?.length || 0} recent processed files (excluding deleted)`)
       setRecentFiles(data || [])
       return data && data.length > 0 ? data[0].id : null
     } catch (error) {
-      console.error("Error fetching recent files:", error)
+      console.error("[Supabase] Error in fetchRecentFiles:", error)
       return null
     } finally {
       setIsLoading(false)
@@ -89,20 +93,20 @@ export function useLastAnalyzedFile(businessId: string) {
       if (!fileId) return false
 
       try {
-        console.log(`Checking if file ${fileId} exists and is not deleted`)
+        console.log(`[Supabase] Checking if file ${fileId} exists and is not deleted`)
         const { data, error } = await supabase
           .from("uploaded_files")
           .select("id")
           .eq("id", fileId)
-          .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
+          .or("(is_deleted.is.null,is_deleted.eq.false)")
           .single()
 
         if (error || !data) {
-          console.log(`File ${fileId} does not exist or is deleted`)
+          console.log(`[Supabase] File ${fileId} does not exist or is deleted`)
           return false
         }
 
-        console.log(`File ${fileId} exists and is not deleted`)
+        console.log(`[Supabase] File ${fileId} exists and is not deleted`)
         return true
       } catch (error) {
         console.error("Error checking file existence:", error)
