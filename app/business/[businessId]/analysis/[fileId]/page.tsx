@@ -9,6 +9,7 @@ import { EmptyTableState } from "@/components/empty-table-state"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, FileText } from "lucide-react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function BusinessAnalysisWithFileIdPage({
   params,
@@ -18,21 +19,48 @@ export default function BusinessAnalysisWithFileIdPage({
   const router = useRouter()
   const businessId = params.businessId
   const fileId = params.fileId
+  const supabase = createClientComponentClient()
 
   const { data, isLoading, error } = useCashflowAnalysis(fileId)
   const { recentFiles, saveLastFile, navigateToAnalysis } = useLastAnalyzedFile(businessId)
   const [selectedFileId, setSelectedFileId] = useState(fileId)
+  const [isFileDeleted, setIsFileDeleted] = useState(false)
 
   useEffect(() => {
     console.log("🔍 [BusinessAnalysis] Mounted with businessId:", businessId)
     console.log("🔍 [BusinessAnalysis] File ID:", fileId)
 
-    // Save this fileId as the last analyzed file
-    saveLastFile(fileId)
+    // Check if the current file is deleted
+    const checkFileStatus = async () => {
+      try {
+        const { data, error } = await supabase.from("uploaded_files").select("is_deleted").eq("id", fileId).single()
 
-    // Update the selected file in the dropdown
-    setSelectedFileId(fileId)
-  }, [businessId, fileId, saveLastFile])
+        if (error || (data && data.is_deleted)) {
+          console.log("Current file is deleted or doesn't exist, need to fallback")
+          setIsFileDeleted(true)
+
+          // Find the next available file
+          if (recentFiles.length > 0) {
+            const nextFileId = recentFiles[0].id
+            console.log(`Falling back to next available file: ${nextFileId}`)
+            navigateToAnalysis(nextFileId)
+          } else {
+            // No files available, redirect to the analysis page without fileId
+            console.log("No files available, redirecting to analysis page")
+            router.push(`/business/${businessId}/analysis`)
+          }
+        } else {
+          // File exists and is not deleted
+          saveLastFile(fileId)
+          setSelectedFileId(fileId)
+        }
+      } catch (err) {
+        console.error("Error checking file status:", err)
+      }
+    }
+
+    checkFileStatus()
+  }, [businessId, fileId, saveLastFile, navigateToAnalysis, router, supabase, recentFiles])
 
   // Handle file selection change
   const handleFileChange = (newFileId: string) => {
@@ -48,6 +76,27 @@ export default function BusinessAnalysisWithFileIdPage({
       month: "short",
       day: "numeric",
     })
+  }
+
+  // If the file is deleted and we're waiting for redirect, show loading
+  if (isFileDeleted) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">Analysis</h1>
+          <p className="text-muted-foreground">View financial analysis and insights for your business.</p>
+        </div>
+
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+              <span>Loading alternative file...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

@@ -60,16 +60,19 @@ export function useLastAnalyzedFile(businessId: string) {
 
       if (!userData.user) return null
 
+      console.log("Fetching recent files with is_deleted=false filter")
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("id, filename, created_at, processed_at")
         .eq("user_id", userData.user.id)
         .eq("status", "processed")
+        .is("is_deleted", false) // Filter out deleted files
         .order("processed_at", { ascending: false })
         .limit(10)
 
       if (error) throw error
 
+      console.log(`Found ${data?.length || 0} recent non-deleted files`)
       setRecentFiles(data || [])
       return data && data.length > 0 ? data[0].id : null
     } catch (error) {
@@ -80,6 +83,35 @@ export function useLastAnalyzedFile(businessId: string) {
     }
   }, [supabase])
 
+  // Check if a file exists and is not deleted
+  const checkFileExists = useCallback(
+    async (fileId: string) => {
+      if (!fileId) return false
+
+      try {
+        console.log(`Checking if file ${fileId} exists and is not deleted`)
+        const { data, error } = await supabase
+          .from("uploaded_files")
+          .select("id")
+          .eq("id", fileId)
+          .is("is_deleted", false)
+          .single()
+
+        if (error || !data) {
+          console.log(`File ${fileId} does not exist or is deleted`)
+          return false
+        }
+
+        console.log(`File ${fileId} exists and is not deleted`)
+        return true
+      } catch (error) {
+        console.error("Error checking file existence:", error)
+        return false
+      }
+    },
+    [supabase],
+  )
+
   // Initialize: check localStorage, then fallback to Supabase
   useEffect(() => {
     const initialize = async () => {
@@ -87,10 +119,20 @@ export function useLastAnalyzedFile(businessId: string) {
       const storedFileId = getLastFileFromStorage()
 
       if (storedFileId) {
-        setLastFileId(storedFileId)
-        setIsLoading(false)
-        // Still fetch recent files in the background for the dropdown
-        fetchRecentFiles()
+        // Verify the stored file still exists and is not deleted
+        const fileExists = await checkFileExists(storedFileId)
+
+        if (fileExists) {
+          setLastFileId(storedFileId)
+          setIsLoading(false)
+          // Still fetch recent files in the background for the dropdown
+          fetchRecentFiles()
+        } else {
+          // Fallback to most recent file from Supabase if stored file is deleted
+          console.log("Stored file is deleted or doesn't exist, falling back to recent files")
+          const recentFileId = await fetchRecentFiles()
+          setLastFileId(recentFileId)
+        }
       } else {
         // Fallback to most recent file from Supabase
         const recentFileId = await fetchRecentFiles()
@@ -99,7 +141,7 @@ export function useLastAnalyzedFile(businessId: string) {
     }
 
     initialize()
-  }, [getLastFileFromStorage, fetchRecentFiles])
+  }, [getLastFileFromStorage, fetchRecentFiles, checkFileExists])
 
   // Navigate to analysis with the specified fileId
   const navigateToAnalysis = useCallback(

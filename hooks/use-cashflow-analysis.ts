@@ -38,8 +38,12 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
       // 🔍 Start: Log the fileId being queried
       console.log(`🔍 Fetching file with ID: ${fileId}`)
 
-      // Fetch file details - UPDATED to remove .single()
-      const { data: fileData, error: fileError } = await supabase.from("uploaded_files").select("*").eq("id", fileId)
+      // Fetch file details - Check if file exists and is not deleted
+      const { data: fileData, error: fileError } = await supabase
+        .from("uploaded_files")
+        .select("*")
+        .eq("id", fileId)
+        .is("is_deleted", false) // Filter out deleted files
 
       // 📊 After query: Log data and error
       console.log(`📊 File query result:`, { data: fileData, error: fileError })
@@ -52,8 +56,8 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
 
       // Handle no results case
       if (!fileData || fileData.length === 0) {
-        console.log(`❌ File not found with ID: ${fileId}`)
-        throw new Error(`File with ID ${fileId} not found`)
+        console.log(`❌ File not found with ID: ${fileId} or is deleted`)
+        throw new Error(`File with ID ${fileId} not found or has been deleted`)
       }
 
       // Extract the first file (should be the only one if ID is unique)

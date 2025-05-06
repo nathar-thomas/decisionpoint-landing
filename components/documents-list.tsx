@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { FileText, BarChart2, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react"
 import { EmptyTableState } from "@/components/empty-table-state"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DocumentActionsMenu } from "@/components/document-actions-menu"
+import { useToast } from "@/hooks/use-toast"
 
 type UploadedFile = {
   id: string
@@ -26,34 +28,38 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const supabase = createClientComponentClient()
+  const { toast } = useToast()
 
   // Fetch uploaded files
   useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        setIsLoading(true)
-        const { data: userData } = await supabase.auth.getUser()
-
-        if (!userData.user) return
-
-        const { data, error } = await supabase
-          .from("uploaded_files")
-          .select("*")
-          .eq("user_id", userData.user.id)
-          .order("created_at", { ascending: false })
-
-        if (error) throw error
-
-        setUploadedFiles(data || [])
-      } catch (err) {
-        console.error("Error fetching uploaded files:", err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchFiles()
-  }, [supabase])
+  }, [])
+
+  const fetchFiles = async () => {
+    try {
+      setIsLoading(true)
+      const { data: userData } = await supabase.auth.getUser()
+
+      if (!userData.user) return
+
+      console.log("Fetching files with is_deleted=false filter")
+      const { data, error } = await supabase
+        .from("uploaded_files")
+        .select("*")
+        .eq("user_id", userData.user.id)
+        .is("is_deleted", false) // Filter out deleted files
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+
+      console.log(`Found ${data?.length || 0} non-deleted files`)
+      setUploadedFiles(data || [])
+    } catch (err) {
+      console.error("Error fetching uploaded files:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Navigate to analysis for a specific file
   const handleViewAnalysis = (fileId: string) => {
@@ -63,6 +69,37 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
   // Navigate to tasks page
   const handleUploadAction = () => {
     router.push(`/business/${businessId}/tasks`)
+  }
+
+  // Soft delete a document
+  const handleDeleteDocument = async (fileId: string) => {
+    try {
+      console.log(`Soft deleting document: ${fileId}`)
+
+      // Update the document with is_deleted=true
+      const { error } = await supabase.from("uploaded_files").update({ is_deleted: true }).eq("id", fileId)
+
+      if (error) throw error
+
+      // Update local state to remove the document
+      setUploadedFiles(uploadedFiles.filter((file) => file.id !== fileId))
+
+      // Show success toast
+      toast({
+        variant: "success",
+        title: "Document deleted",
+        description: "The document has been removed from your profile.",
+      })
+
+      console.log("Document soft deleted successfully")
+    } catch (err) {
+      console.error("Error deleting document:", err)
+      toast({
+        variant: "destructive",
+        title: "Error deleting document",
+        description: "There was a problem deleting the document. Please try again.",
+      })
+    }
   }
 
   // Format date for display
@@ -203,6 +240,13 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
                     </Tooltip>
                   </TooltipProvider>
                 )}
+
+                {/* Document Actions Menu */}
+                <DocumentActionsMenu
+                  documentId={file.id}
+                  documentName={file.filename}
+                  onDelete={handleDeleteDocument}
+                />
               </div>
             </div>
           ))}
