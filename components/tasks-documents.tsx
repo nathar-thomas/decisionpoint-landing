@@ -74,16 +74,10 @@ export function TasksDocuments() {
 
   return (
     <div className="space-y-8">
-      {/* File Uploader */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Financial Data</CardTitle>
-          <CardDescription>Upload a CSV or Excel file with your annual cash flow data</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CashflowAnalyzer onFileProcessed={handleFileProcessed} />
-        </CardContent>
-      </Card>
+      {/* File Uploader - No card container, heading, or subheading */}
+      <div>
+        <CashflowAnalyzer onFileProcessed={handleFileProcessed} />
+      </div>
 
       {/* Required Documents Section */}
       <Card>

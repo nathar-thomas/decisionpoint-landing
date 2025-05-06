@@ -200,7 +200,7 @@ export function CashflowAnalyzer({ onFileProcessed }: CashflowAnalyzerProps) {
       <div
         {...getRootProps()}
         className={`
-          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors w-full
           ${isDragActive ? "border-primary bg-primary/10" : "border-muted-foreground/25 hover:border-primary/50"}
           ${isDragReject ? "border-destructive bg-destructive/10" : ""}
         `}
@@ -230,7 +230,7 @@ export function CashflowAnalyzer({ onFileProcessed }: CashflowAnalyzerProps) {
   // Render progress indicators
   if (status === "uploading" || status === "parsing") {
     return (
-      <div className="space-y-4 border rounded-lg p-6">
+      <div className="space-y-4 border rounded-lg p-6 w-full">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium">{fileName}</p>
@@ -253,7 +253,7 @@ export function CashflowAnalyzer({ onFileProcessed }: CashflowAnalyzerProps) {
   // Render error state
   if (status === "error") {
     return (
-      <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+      <Alert variant="destructive" className="border-destructive/50 bg-destructive/10 w-full">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error Processing File</AlertTitle>
         <AlertDescription>

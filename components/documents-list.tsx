@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, BarChart2, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react"
 import { EmptyTableState } from "@/components/empty-table-state"
@@ -34,8 +33,6 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
   useEffect(() => {
     fetchFiles()
   }, [supabase])
-
-  // Replace the fetchFiles function with this simplified version that uses client-side filtering
 
   const fetchFiles = async () => {
     try {
@@ -181,110 +178,73 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <FileText className="h-5 w-5 mr-2" />
-            Uploaded Documents
-          </CardTitle>
-          <CardDescription>View and manage your uploaded files</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-            <span>Loading documents...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+        <span>Loading documents...</span>
+      </div>
     )
   }
 
   if (uploadedFiles.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <FileText className="h-5 w-5 mr-2" />
-            Uploaded Documents
-          </CardTitle>
-          <CardDescription>View and manage your uploaded files</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EmptyTableState
-            message="No documents uploaded yet"
-            actionLabel="Upload Document"
-            onAction={handleUploadAction}
-          />
-        </CardContent>
-      </Card>
+      <EmptyTableState
+        message="No documents uploaded yet"
+        actionLabel="Upload Document"
+        onAction={handleUploadAction}
+      />
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <FileText className="h-5 w-5 mr-2" />
-          Uploaded Documents
-        </CardTitle>
-        <CardDescription>View and manage your uploaded files</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="border rounded-md divide-y">
-          {uploadedFiles.map((file) => (
-            <div key={file.id} className="p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 mr-3 text-blue-500" />
-                <div>
-                  <p className="font-medium">{file.filename}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Uploaded on {formatDate(file.created_at)}
-                    {file.processed_at && ` • Processed on ${formatDate(file.processed_at)}`}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {getStatusBadge(file.status)}
-
-                {file.status === "processed" ? (
-                  <Button size="sm" variant="outline" onClick={() => handleViewAnalysis(file.id)}>
-                    <BarChart2 className="h-4 w-4 mr-2" />
-                    View Analysis
-                  </Button>
-                ) : file.status === "error" ? (
-                  <Button size="sm" variant="outline" className="text-red-600" onClick={handleUploadAction}>
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Retry Upload
-                  </Button>
-                ) : (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <Button size="sm" variant="outline" disabled>
-                            <BarChart2 className="h-4 w-4 mr-2" />
-                            View Analysis
-                          </Button>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>File is still being processed</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-
-                {/* Document Actions Menu */}
-                <DocumentActionsMenu
-                  documentId={file.id}
-                  documentName={file.filename}
-                  onDelete={handleDeleteDocument}
-                />
-              </div>
+    <div className="border rounded-md divide-y">
+      {uploadedFiles.map((file) => (
+        <div key={file.id} className="p-4 flex items-center justify-between">
+          <div className="flex items-center">
+            <FileText className="h-5 w-5 mr-3 text-blue-500" />
+            <div>
+              <p className="font-medium">{file.filename}</p>
+              <p className="text-xs text-muted-foreground">
+                Uploaded on {formatDate(file.created_at)}
+                {file.processed_at && ` • Processed on ${formatDate(file.processed_at)}`}
+              </p>
             </div>
-          ))}
+          </div>
+          <div className="flex items-center gap-2">
+            {getStatusBadge(file.status)}
+
+            {file.status === "processed" ? (
+              <Button size="sm" variant="outline" onClick={() => handleViewAnalysis(file.id)}>
+                <BarChart2 className="h-4 w-4 mr-2" />
+                View Analysis
+              </Button>
+            ) : file.status === "error" ? (
+              <Button size="sm" variant="outline" className="text-red-600" onClick={handleUploadAction}>
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Retry Upload
+              </Button>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button size="sm" variant="outline" disabled>
+                        <BarChart2 className="h-4 w-4 mr-2" />
+                        View Analysis
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>File is still being processed</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
+            {/* Document Actions Menu */}
+            <DocumentActionsMenu documentId={file.id} documentName={file.filename} onDelete={handleDeleteDocument} />
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      ))}
+    </div>
   )
 }
