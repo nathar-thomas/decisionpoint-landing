@@ -35,7 +35,11 @@ type Category = {
   type: string
 }
 
-export function CashflowAnalyzer() {
+interface CashflowAnalyzerProps {
+  onFileProcessed?: (fileId: string) => void
+}
+
+export function CashflowAnalyzer({ onFileProcessed }: CashflowAnalyzerProps) {
   // Process state
   const [status, setStatus] = useState<ProcessStatus>("idle")
   const [progress, setProgress] = useState(0)
@@ -141,8 +145,13 @@ export function CashflowAnalyzer() {
 
     if (fileId && status === "success") {
       fetchRecords()
+
+      // Call the callback if provided
+      if (onFileProcessed) {
+        onFileProcessed(fileId)
+      }
     }
-  }, [fileId, status, supabase])
+  }, [fileId, status, supabase, onFileProcessed])
 
   const handleUpload = async (file: File) => {
     try {

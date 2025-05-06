@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useParams } from "next/navigation"
-import { CashflowAnalyzer } from "@/components/cashflow-analyzer"
+import { TasksDocuments } from "@/components/tasks-documents"
 
 export default function BusinessTasksPage() {
   const params = useParams()
@@ -21,7 +21,7 @@ export default function BusinessTasksPage() {
         </p>
       </div>
 
-      <CashflowAnalyzer />
+      <TasksDocuments />
     </div>
   )
 }
