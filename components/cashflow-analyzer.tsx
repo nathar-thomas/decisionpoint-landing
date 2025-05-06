@@ -323,14 +323,7 @@ export function CashflowAnalyzer() {
   const yearTotals = calculateYearTotals()
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Cash Flow Analyzer</h1>
-        <p className="text-muted-foreground">
-          Upload your financial data to analyze cash flow across categories and years
-        </p>
-      </div>
-
+    <div>
       {/* File Upload Area */}
       {status === "idle" && (
         <div

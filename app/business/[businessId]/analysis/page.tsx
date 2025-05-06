@@ -14,18 +14,20 @@ export default function BusinessAnalysisPage() {
     console.log("📊 [Analysis] Data state: Empty (no fileId)")
   }, [businessId])
 
-  const handleUploadAction = () => {
-    console.log("🧭 [Navigation] Redirecting to tasks for file upload")
-    router.push(`/business/${businessId}/tasks`)
-  }
-
   return (
-    <div className="border rounded-lg">
-      <div className="p-4 border-b bg-muted/10">
-        <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">Analysis</h1>
+        <p className="text-muted-foreground">View financial analysis and insights for your business.</p>
       </div>
 
-      <EmptyTableState message="No financial data available" actionLabel="Upload File" onAction={handleUploadAction} />
+      <div className="border rounded-lg">
+        <div className="p-4 border-b bg-muted/10">
+          <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
+        </div>
+
+        <EmptyTableState message="No financial data available" />
+      </div>
     </div>
   )
 }

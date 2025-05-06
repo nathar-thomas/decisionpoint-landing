@@ -6,7 +6,6 @@ import { useParams, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import { FileText, BarChart2, ClipboardList, Home } from "lucide-react"
 import { BackButton } from "@/components/back-button"
-import { BusinessHeader } from "@/components/business-header"
 import { NavigationTabs } from "@/components/navigation-tabs"
 
 export default function BusinessProfileLayout({ children }: { children: React.ReactNode }) {
@@ -61,13 +60,6 @@ export default function BusinessProfileLayout({ children }: { children: React.Re
         <BackButton destination="/dashboard" label="Back to Dashboard" />
         <NavigationTabs tabs={tabs} activeTab={activeTab} />
       </div>
-
-      <BusinessHeader
-        businessId={businessId}
-        title="Business Profile"
-        description="Manage this business's readiness, analysis, and documents."
-        className="mb-8"
-      />
 
       {children}
     </div>
