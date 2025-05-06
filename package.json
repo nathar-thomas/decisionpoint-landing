@@ -62,8 +62,7 @@
     "@supabase/auth-helpers-nextjs": "latest",
     "csv-parse": "latest",
     "react-dropzone": "latest",
-    "uuid": "latest",
-    "@supabase/auth-helpers-react": "latest"
+    "uuid": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

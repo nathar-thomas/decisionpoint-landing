@@ -60,7 +60,7 @@ export function useLastAnalyzedFile(businessId: string) {
 
       if (!userData.user) return null
 
-      console.log("Fetching recent files with is_deleted=false OR is_deleted IS NULL filter")
+      console.log("Fetching recent files with is_deleted=false filter")
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("id, filename, created_at, processed_at")

@@ -33,9 +33,8 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
   // Fetch uploaded files
   useEffect(() => {
     fetchFiles()
-  }, [])
+  }, [supabase])
 
-  // Update the fetchFiles function to properly handle NULL values
   const fetchFiles = async () => {
     try {
       setIsLoading(true)
@@ -43,12 +42,27 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
 
       if (!userData.user) return
 
-      console.log("Fetching files with is_deleted=false OR is_deleted IS NULL filter")
+      console.log("Fetching files for user:", userData.user.id)
+
+      // First, let's check what values exist in the is_deleted column
+      const { data: checkData, error: checkError } = await supabase
+        .from("uploaded_files")
+        .select("id, filename, is_deleted")
+        .eq("user_id", userData.user.id)
+        .limit(10)
+
+      if (checkError) {
+        console.error("Error checking is_deleted values:", checkError)
+      } else {
+        console.log("Sample documents with is_deleted values:", checkData)
+      }
+
+      // Now fetch all non-deleted files with a more explicit filter
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("*")
         .eq("user_id", userData.user.id)
-        .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
+        .or(`is_deleted.is.null,is_deleted.eq.false`)
         .order("created_at", { ascending: false })
 
       if (error) throw error
