@@ -3,7 +3,6 @@
 import type React from "react"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 interface Tab {
@@ -15,17 +14,17 @@ interface Tab {
 
 interface NavigationTabsProps {
   tabs: Tab[]
+  activeTab?: string
   className?: string
 }
 
-export function NavigationTabs({ tabs, className }: NavigationTabsProps) {
-  const pathname = usePathname()
-
+export function NavigationTabs({ tabs, activeTab, className }: NavigationTabsProps) {
   return (
     <div className={cn("flex", className)}>
       <div className="flex space-x-1">
         {tabs.map((tab) => {
-          const isActive = pathname.includes(tab.route)
+          const tabName = tab.label.toLowerCase()
+          const isActive = activeTab === tabName
 
           return (
             <Link

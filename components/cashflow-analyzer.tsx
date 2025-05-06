@@ -295,7 +295,12 @@ export function CashflowAnalyzer() {
   const handleViewAnalysis = () => {
     console.log("🔍 Navigating to analysis page for file:", fileId)
     if (fileId) {
-      router.push(`/cashflow/analysis/${fileId}`)
+      // Extract the businessId from the current URL
+      const urlPath = window.location.pathname
+      const businessIdMatch = urlPath.match(/\/business\/([^/]+)/)
+      const businessId = businessIdMatch ? businessIdMatch[1] : "mock-business-1"
+
+      router.push(`/business/${businessId}/analysis/${fileId}`)
     }
   }
 
