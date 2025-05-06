@@ -47,34 +47,32 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
       console.log("[Supabase] Fetching files for user:", userData.user.id)
 
       // Step 1: Baseline query - minimal select to confirm table access
-      const { data: allData, error: basicError } = await supabase.from("uploaded_files").select("*")
-
-      if (basicError) {
-        console.error("[Supabase] Error with baseline query:", basicError)
-        throw basicError
-      }
-
-      console.log(`[Supabase] Baseline query successful - retrieved ${allData?.length || 0} total documents`)
-
-      // Log sample rows to inspect is_deleted values
-      console.log("[Supabase] Sample document rows:", allData?.slice(0, 3))
-
-      // Step 2: Query with user filter
-      const { data, error } = await supabase.from("uploaded_files").select("*").eq("user_id", userData.user.id)
+      const { data, error } = await supabase
+        .from("uploaded_files")
+        .select("*")
+        .eq("user_id", userData.user.id)
+        .order("created_at", { ascending: false })
 
       if (error) {
-        console.error("[Supabase] Error fetching user's uploaded files:", error)
+        console.error("[Supabase] Error fetching uploaded files:", error)
         throw error
       }
 
-      console.log(`[Supabase] Retrieved ${data?.length || 0} documents for user`)
+      console.log(`[Supabase] Retrieved ${data?.length || 0} total documents for user`)
 
-      // Step 3: Apply client-side filtering for is_deleted
-      const filteredData = data?.filter((file) => file.is_deleted === false || file.is_deleted === null)
+      // Log detailed information about is_deleted values
+      if (data && data.length > 0) {
+        console.log("[Supabase] Document is_deleted values:")
+        data.forEach((file) => {
+          console.log(`Document ID: ${file.id}, is_deleted: ${file.is_deleted}, type: ${typeof file.is_deleted}`)
+        })
 
-      console.log(`[Supabase] After client-side filtering: ${filteredData?.length || 0} non-deleted documents`)
+        // Log a few sample documents for inspection
+        console.log("[Supabase] Sample documents (first 5):", data.slice(0, 5))
+      }
 
-      setUploadedFiles(filteredData || [])
+      // No filtering - return all documents
+      setUploadedFiles(data || [])
     } catch (err) {
       console.error("[Supabase] Error in fetchFiles:", err)
     } finally {
