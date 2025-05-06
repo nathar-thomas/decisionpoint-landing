@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { AppShell } from "@/components/app-shell"
 import { DebugModeToggle } from "@/components/debug-mode-toggle"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AppShell>{children}</AppShell>
         <DebugModeToggle />
+        <Toaster />
       </body>
     </html>
   )

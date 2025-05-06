@@ -22,7 +22,7 @@ export function TasksDocuments() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const params = useParams()
-  const businessId = params.businessId as string
+  const businessId = (params.businessId as string) || "mock-business-1"
   const supabase = createClientComponentClient()
 
   // Fetch uploaded files
@@ -62,6 +62,16 @@ export function TasksDocuments() {
   // Count completed documents
   const completedCount = uploadedFiles.filter((file) => file.status === "processed").length
 
+  // Handle file processed callback
+  const handleFileProcessed = async (fileId: string) => {
+    // Refresh the file list after a new file is processed
+    const { data, error } = await supabase.from("uploaded_files").select("*").eq("id", fileId).single()
+
+    if (data && !error) {
+      setUploadedFiles([data, ...uploadedFiles.filter((f) => f.id !== fileId)])
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* File Uploader */}
@@ -71,21 +81,7 @@ export function TasksDocuments() {
           <CardDescription>Upload a CSV or Excel file with your annual cash flow data</CardDescription>
         </CardHeader>
         <CardContent>
-          <CashflowAnalyzer
-            onFileProcessed={(fileId) => {
-              // Refresh the file list after a new file is processed
-              supabase
-                .from("uploaded_files")
-                .select("*")
-                .eq("id", fileId)
-                .single()
-                .then(({ data }) => {
-                  if (data) {
-                    setUploadedFiles([data, ...uploadedFiles])
-                  }
-                })
-            }}
-          />
+          <CashflowAnalyzer onFileProcessed={handleFileProcessed} />
         </CardContent>
       </Card>
 
@@ -120,7 +116,7 @@ export function TasksDocuments() {
                     <p className="text-sm text-muted-foreground mt-1">
                       Upload a CSV or Excel file with your annual cash flow data.
                     </p>
-                    {completedCount > 0 && (
+                    {completedCount > 0 && uploadedFiles[0]?.id && (
                       <div className="mt-2">
                         <Button variant="outline" size="sm" onClick={() => handleViewAnalysis(uploadedFiles[0].id)}>
                           <BarChart2 className="h-4 w-4 mr-2" />
