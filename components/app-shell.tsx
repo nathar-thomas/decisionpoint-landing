@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { LogOut, LogIn, BarChart } from "lucide-react"
+import { LogOut, LogIn } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -64,20 +64,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="font-bold text-xl">
-            Cash Flow Analysis
+            DecisionPoint
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link
-              href="/cashflow"
-              className={`flex items-center text-sm hover:text-primary transition-colors ${
-                pathname === "/cashflow" ? "text-primary font-medium" : ""
-              }`}
-            >
-              <BarChart className="mr-1 h-4 w-4" />
-              Cashflow Analyzer
-            </Link>
-
             {isLoading ? (
               <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
             ) : user ? (
@@ -128,7 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <footer className="border-t py-4 bg-gray-50">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Cash Flow Analysis. All rights reserved.
+          &copy; {new Date().getFullYear()} DecisionPoint. All rights reserved.
         </div>
       </footer>
     </div>

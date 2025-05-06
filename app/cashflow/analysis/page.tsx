@@ -2,7 +2,6 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { BusinessHeader } from "@/components/business-header"
 import { EmptyTableState } from "@/components/empty-table-state"
 
 export default function AnalysisPage() {
@@ -19,25 +18,12 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <BusinessHeader
-        businessId="mock-business-1"
-        title="Analysis"
-        description="View financial analysis and insights."
-        className="mb-8"
-      />
-
-      <div className="border rounded-lg">
-        <div className="p-4 border-b bg-muted/10">
-          <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
-        </div>
-
-        <EmptyTableState
-          message="No financial data available"
-          actionLabel="Upload File"
-          onAction={handleUploadAction}
-        />
+    <div className="border rounded-lg">
+      <div className="p-4 border-b bg-muted/10">
+        <h2 className="text-lg font-medium">Cash Flow Analysis</h2>
       </div>
+
+      <EmptyTableState message="No financial data available" actionLabel="Upload File" onAction={handleUploadAction} />
     </div>
   )
 }

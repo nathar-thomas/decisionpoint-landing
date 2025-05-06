@@ -31,7 +31,7 @@ export default async function Dashboard() {
         <p className="text-muted-foreground">You are now signed in.</p>
         <div className="mt-4">
           <Link href={`/business/profile/${mockBusinessId}`} className="text-primary hover:underline">
-            Profile
+            Business Profile
           </Link>
         </div>
       </div>
