@@ -43,7 +43,7 @@ export function useCashflowAnalysis(fileId: string): UseCashflowAnalysisReturn {
         .from("uploaded_files")
         .select("*")
         .eq("id", fileId)
-        .is("is_deleted", false) // Filter out deleted files
+        .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
 
       // 📊 After query: Log data and error
       console.log(`📊 File query result:`, { data: fileData, error: fileError })

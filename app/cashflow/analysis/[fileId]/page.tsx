@@ -9,6 +9,7 @@ import { EmptyTableState } from "@/components/empty-table-state"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, FileText } from "lucide-react"
+import { useSupabaseClient } from "@supabase/auth-helpers-react"
 
 export default function AnalysisWithFileIdPage({
   params,
@@ -19,20 +20,43 @@ export default function AnalysisWithFileIdPage({
   const fileId = params.fileId
   // Using a mock business ID for the cashflow route
   const businessId = "mock-business-1"
+  const supabase = useSupabaseClient()
 
   const { data, isLoading, error } = useCashflowAnalysis(fileId)
   const { recentFiles, saveLastFile } = useLastAnalyzedFile(businessId)
   const [selectedFileId, setSelectedFileId] = useState(fileId)
 
+  // Add a check for file status
   useEffect(() => {
     console.log("🔍 [AnalysisPage] Mounted with fileId:", fileId)
 
-    // Save this fileId as the last analyzed file
-    saveLastFile(fileId)
+    // Check if the file exists and is not deleted
+    const checkFileStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("uploaded_files")
+          .select("*")
+          .eq("id", fileId)
+          .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
+          .single()
 
-    // Update the selected file in the dropdown
-    setSelectedFileId(fileId)
-  }, [fileId, saveLastFile])
+        if (error || !data) {
+          console.log("File is deleted or doesn't exist, redirecting to analysis page")
+          router.push("/cashflow/analysis")
+          return
+        }
+
+        // Save this fileId as the last analyzed file
+        saveLastFile(fileId)
+        // Update the selected file in the dropdown
+        setSelectedFileId(fileId)
+      } catch (err) {
+        console.error("Error checking file status:", err)
+      }
+    }
+
+    checkFileStatus()
+  }, [fileId, saveLastFile, router, supabase])
 
   // Handle file selection change
   const handleFileChange = (newFileId: string) => {

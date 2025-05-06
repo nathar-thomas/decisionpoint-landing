@@ -33,9 +33,14 @@ export default function BusinessAnalysisWithFileIdPage({
     // Check if the current file is deleted
     const checkFileStatus = async () => {
       try {
-        const { data, error } = await supabase.from("uploaded_files").select("is_deleted").eq("id", fileId).single()
+        const { data, error } = await supabase
+          .from("uploaded_files")
+          .select("*")
+          .eq("id", fileId)
+          .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
+          .single()
 
-        if (error || (data && data.is_deleted)) {
+        if (error || !data) {
           console.log("Current file is deleted or doesn't exist, need to fallback")
           setIsFileDeleted(true)
 

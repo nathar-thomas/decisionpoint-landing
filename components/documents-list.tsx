@@ -35,6 +35,7 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
     fetchFiles()
   }, [])
 
+  // Update the fetchFiles function to properly handle NULL values
   const fetchFiles = async () => {
     try {
       setIsLoading(true)
@@ -42,12 +43,12 @@ export function DocumentsList({ businessId }: DocumentsListProps) {
 
       if (!userData.user) return
 
-      console.log("Fetching files with is_deleted=false filter")
+      console.log("Fetching files with is_deleted=false OR is_deleted IS NULL filter")
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("*")
         .eq("user_id", userData.user.id)
-        .is("is_deleted", false) // Filter out deleted files
+        .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
         .order("created_at", { ascending: false })
 
       if (error) throw error

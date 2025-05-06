@@ -60,13 +60,13 @@ export function useLastAnalyzedFile(businessId: string) {
 
       if (!userData.user) return null
 
-      console.log("Fetching recent files with is_deleted=false filter")
+      console.log("Fetching recent files with is_deleted=false OR is_deleted IS NULL filter")
       const { data, error } = await supabase
         .from("uploaded_files")
         .select("id, filename, created_at, processed_at")
         .eq("user_id", userData.user.id)
         .eq("status", "processed")
-        .is("is_deleted", false) // Filter out deleted files
+        .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
         .order("processed_at", { ascending: false })
         .limit(10)
 
@@ -94,7 +94,7 @@ export function useLastAnalyzedFile(businessId: string) {
           .from("uploaded_files")
           .select("id")
           .eq("id", fileId)
-          .is("is_deleted", false)
+          .or("is_deleted.is.null,is_deleted.eq.false") // Include both NULL and false
           .single()
 
         if (error || !data) {
