@@ -39,6 +39,7 @@ export function TasksDocuments() {
           .select("*")
           .eq("user_id", userData.user.id)
           .order("created_at", { ascending: false })
+          .limit(1) // Just get the most recent file for the status indicator
 
         if (error) throw error
 
@@ -63,6 +64,31 @@ export function TasksDocuments() {
 
   return (
     <div className="space-y-8">
+      {/* File Uploader */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload Financial Data</CardTitle>
+          <CardDescription>Upload a CSV or Excel file with your annual cash flow data</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CashflowAnalyzer
+            onFileProcessed={(fileId) => {
+              // Refresh the file list after a new file is processed
+              supabase
+                .from("uploaded_files")
+                .select("*")
+                .eq("id", fileId)
+                .single()
+                .then(({ data }) => {
+                  if (data) {
+                    setUploadedFiles([data, ...uploadedFiles])
+                  }
+                })
+            }}
+          />
+        </CardContent>
+      </Card>
+
       {/* Required Documents Section */}
       <Card>
         <CardHeader>
@@ -125,76 +151,6 @@ export function TasksDocuments() {
           </Tabs>
         </CardContent>
       </Card>
-
-      {/* File Uploader */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Financial Data</CardTitle>
-          <CardDescription>Upload a CSV or Excel file with your annual cash flow data</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CashflowAnalyzer
-            onFileProcessed={(fileId) => {
-              // Refresh the file list after a new file is processed
-              supabase
-                .from("uploaded_files")
-                .select("*")
-                .eq("id", fileId)
-                .single()
-                .then(({ data }) => {
-                  if (data) {
-                    setUploadedFiles([data, ...uploadedFiles])
-                  }
-                })
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Completed Documents Section */}
-      {uploadedFiles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CheckCircle2 className="h-5 w-5 mr-2" />
-              Completed Documents
-            </CardTitle>
-            <CardDescription>Documents you have already uploaded and processed</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border rounded-md divide-y">
-              {uploadedFiles.map((file) => (
-                <div key={file.id} className="p-4 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 mr-3 text-blue-500" />
-                    <div>
-                      <p className="font-medium">{file.filename}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Uploaded on {new Date(file.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {file.status === "processed" ? (
-                      <>
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Processed</span>
-                        <Button size="sm" variant="outline" onClick={() => handleViewAnalysis(file.id)}>
-                          <BarChart2 className="h-4 w-4 mr-2" />
-                          View Analysis
-                        </Button>
-                      </>
-                    ) : (
-                      <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
-                        {file.status === "uploaded" ? "Pending" : file.status}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useParams } from "next/navigation"
+import { DocumentsList } from "@/components/documents-list"
 
 export default function BusinessDocumentsPage() {
   const params = useParams()
@@ -18,9 +19,7 @@ export default function BusinessDocumentsPage() {
         <p className="text-muted-foreground">Organize and view uploaded business files.</p>
       </div>
 
-      <div className="p-8 border rounded-lg bg-muted/10 text-center">
-        <p className="text-muted-foreground">Document management features will be available soon.</p>
-      </div>
+      <DocumentsList />
     </div>
   )
 }
