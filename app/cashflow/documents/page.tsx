@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { DocumentsList } from "@/components/documents-list"
 
 export default function DocumentsPage() {
   useEffect(() => {
@@ -8,8 +9,8 @@ export default function DocumentsPage() {
   }, [])
 
   return (
-    <div className="p-8 border rounded-lg bg-muted/10 text-center">
-      <p className="text-muted-foreground">Document management features will be available soon.</p>
+    <div>
+      <DocumentsList businessId="mock-business-1" />
     </div>
   )
 }

@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, BarChart2, CheckCircle2 } from "lucide-react"
+import { FileText, BarChart2, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react"
 import { EmptyTableState } from "@/components/empty-table-state"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type UploadedFile = {
   id: string
@@ -16,12 +17,14 @@ type UploadedFile = {
   processed_at: string | null
 }
 
-export function DocumentsList() {
+interface DocumentsListProps {
+  businessId: string
+}
+
+export function DocumentsList({ businessId }: DocumentsListProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const params = useParams()
-  const businessId = params.businessId as string
   const supabase = createClientComponentClient()
 
   // Fetch uploaded files
@@ -62,19 +65,64 @@ export function DocumentsList() {
     router.push(`/business/${businessId}/tasks`)
   }
 
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  // Get status badge based on file status
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "processed":
+        return (
+          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Processed
+          </span>
+        )
+      case "uploading":
+      case "parsing":
+        return (
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            Processing
+          </span>
+        )
+      case "error":
+        return (
+          <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full flex items-center">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Error
+          </span>
+        )
+      default:
+        return (
+          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full flex items-center">
+            <Clock className="h-3 w-3 mr-1" />
+            Pending
+          </span>
+        )
+    }
+  }
+
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <CheckCircle2 className="h-5 w-5 mr-2" />
-            Completed Documents
+            <FileText className="h-5 w-5 mr-2" />
+            Uploaded Documents
           </CardTitle>
-          <CardDescription>Documents you have already uploaded and processed</CardDescription>
+          <CardDescription>View and manage your uploaded files</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+            <span>Loading documents...</span>
           </div>
         </CardContent>
       </Card>
@@ -86,10 +134,10 @@ export function DocumentsList() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <CheckCircle2 className="h-5 w-5 mr-2" />
-            Completed Documents
+            <FileText className="h-5 w-5 mr-2" />
+            Uploaded Documents
           </CardTitle>
-          <CardDescription>Documents you have already uploaded and processed</CardDescription>
+          <CardDescription>View and manage your uploaded files</CardDescription>
         </CardHeader>
         <CardContent>
           <EmptyTableState
@@ -106,10 +154,10 @@ export function DocumentsList() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <CheckCircle2 className="h-5 w-5 mr-2" />
-          Completed Documents
+          <FileText className="h-5 w-5 mr-2" />
+          Uploaded Documents
         </CardTitle>
-        <CardDescription>Documents you have already uploaded and processed</CardDescription>
+        <CardDescription>View and manage your uploaded files</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="border rounded-md divide-y">
@@ -119,24 +167,41 @@ export function DocumentsList() {
                 <FileText className="h-5 w-5 mr-3 text-blue-500" />
                 <div>
                   <p className="font-medium">{file.filename}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Uploaded on {new Date(file.created_at).toLocaleDateString()}
+                  <p className="text-xs text-muted-foreground">
+                    Uploaded on {formatDate(file.created_at)}
+                    {file.processed_at && ` • Processed on ${formatDate(file.processed_at)}`}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {getStatusBadge(file.status)}
+
                 {file.status === "processed" ? (
-                  <>
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Processed</span>
-                    <Button size="sm" variant="outline" onClick={() => handleViewAnalysis(file.id)}>
-                      <BarChart2 className="h-4 w-4 mr-2" />
-                      View Analysis
-                    </Button>
-                  </>
+                  <Button size="sm" variant="outline" onClick={() => handleViewAnalysis(file.id)}>
+                    <BarChart2 className="h-4 w-4 mr-2" />
+                    View Analysis
+                  </Button>
+                ) : file.status === "error" ? (
+                  <Button size="sm" variant="outline" className="text-red-600" onClick={handleUploadAction}>
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Retry Upload
+                  </Button>
                 ) : (
-                  <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
-                    {file.status === "uploaded" ? "Pending" : file.status}
-                  </span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Button size="sm" variant="outline" disabled>
+                            <BarChart2 className="h-4 w-4 mr-2" />
+                            View Analysis
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>File is still being processed</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
             </div>

@@ -19,7 +19,7 @@ export default function BusinessDocumentsPage() {
         <p className="text-muted-foreground">Organize and view uploaded business files.</p>
       </div>
 
-      <DocumentsList />
+      <DocumentsList businessId={businessId} />
     </div>
   )
 }
