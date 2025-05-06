@@ -295,7 +295,7 @@ export function CashflowAnalyzer() {
   const handleViewAnalysis = () => {
     console.log("🔍 Navigating to analysis page for file:", fileId)
     if (fileId) {
-      router.push(`/cashflow-analysis/${fileId}`)
+      router.push(`/cashflow/analysis/${fileId}`)
     }
   }
 

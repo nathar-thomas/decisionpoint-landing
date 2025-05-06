@@ -18,6 +18,9 @@ export default async function Dashboard() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Mock business ID for initial implementation
+  const mockBusinessId = "mock-business-1"
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
@@ -27,8 +30,8 @@ export default async function Dashboard() {
         </p>
         <p className="text-muted-foreground">You are now signed in.</p>
         <div className="mt-4">
-          <Link href="/cashflow" className="text-primary hover:underline">
-            Go to Cash Flow Analyzer
+          <Link href={`/business/profile/${mockBusinessId}`} className="text-primary hover:underline">
+            Profile
           </Link>
         </div>
       </div>
