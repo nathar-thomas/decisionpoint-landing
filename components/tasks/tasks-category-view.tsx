@@ -37,9 +37,28 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
     async function fetchTasksAndFiles() {
       try {
         setIsLoading(true)
-        console.log("Fetching tasks and files for business:", businessId)
+        console.log("[fetchTasksAndFiles] Fetching tasks and files for business:", businessId)
+
+        // Check if businessId is a valid UUID
+        const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId)
+
+        if (!isValidUUID) {
+          console.warn("[fetchTasksAndFiles] BusinessId is not a valid UUID:", businessId)
+          console.log("[fetchTasksAndFiles] Using mock data for development")
+
+          // Use mock data for development/preview
+          const mockTasks = getMockTasks()
+          const mockFiles = getMockFiles()
+
+          console.log("[fetchTasksAndFiles] Mock tasks:", mockTasks)
+          console.log("[fetchTasksAndFiles] Mock files:", mockFiles)
+
+          processTasksAndFiles(mockTasks, mockFiles)
+          return
+        }
 
         // Fetch tasks for this business
+        console.log("[fetchTasksAndFiles] Querying tasks table with seller_id:", businessId)
         const { data: tasks, error: tasksError } = await supabase
           .from("tasks")
           .select("*")
@@ -47,67 +66,159 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
           .order("task_name")
 
         if (tasksError) {
-          console.error("Error fetching tasks:", tasksError)
+          console.error("[fetchTasksAndFiles] Error fetching tasks:", tasksError)
           throw new Error(`Failed to fetch tasks: ${tasksError.message}`)
         }
 
-        console.log(`Retrieved ${tasks?.length || 0} tasks`)
+        console.log("[fetchTasksAndFiles] Fetched tasks:", tasks)
 
         // Fetch uploaded files for this business
+        console.log("[fetchTasksAndFiles] Querying uploaded_files with business_id:", businessId)
         const { data: files, error: filesError } = await supabase
           .from("uploaded_files")
           .select("id, task_id, status")
           .eq("business_id", businessId)
 
         if (filesError) {
-          console.error("Error fetching files:", filesError)
+          console.error("[fetchTasksAndFiles] Error fetching files:", filesError)
           throw new Error(`Failed to fetch files: ${filesError.message}`)
         }
 
-        console.log(`Retrieved ${files?.length || 0} files`)
+        console.log("[fetchTasksAndFiles] Fetched uploaded files:", files)
 
-        // Group tasks by category
-        const tasksByCategory: Record<string, (Task & { isComplete: boolean })[]> = {}
-
-        tasks?.forEach((task: Task) => {
-          // Determine if task is complete (has at least one processed file)
-          const isComplete =
-            files?.some((file) => file.task_id === task.task_id && file.status === "processed") || false
-
-          // Use "Uncategorized" for null categories
-          const category = task.category || "Uncategorized"
-
-          if (!tasksByCategory[category]) {
-            tasksByCategory[category] = []
-          }
-
-          tasksByCategory[category].push({
-            ...task,
-            isComplete,
-          })
-        })
-
-        // Convert to array and sort categories
-        const categoriesArray = Object.entries(tasksByCategory).map(([name, tasks]) => ({
-          name,
-          tasks,
-          isComplete: tasks.every((task) => task.isComplete),
-        }))
-
-        // Sort categories alphabetically, but keep "Uncategorized" at the end
-        categoriesArray.sort((a, b) => {
-          if (a.name === "Uncategorized") return 1
-          if (b.name === "Uncategorized") return -1
-          return a.name.localeCompare(b.name)
-        })
-
-        setCategories(categoriesArray)
+        processTasksAndFiles(tasks || [], files || [])
       } catch (err) {
-        console.error("Error in fetchTasksAndFiles:", err)
+        console.error("[fetchTasksAndFiles] Error:", err)
         setError(err instanceof Error ? err.message : "An unknown error occurred")
       } finally {
         setIsLoading(false)
       }
+    }
+
+    // Helper function to process tasks and files data
+    function processTasksAndFiles(tasks: Task[], files: UploadedFile[]) {
+      console.log("[processTasksAndFiles] Processing tasks and files")
+
+      // Group tasks by category
+      const tasksByCategory: Record<string, (Task & { isComplete: boolean })[]> = {}
+
+      tasks.forEach((task: Task) => {
+        // Determine if task is complete (has at least one processed file)
+        const isComplete = files.some((file) => file.task_id === task.task_id && file.status === "processed")
+        console.log(`[Status] Task ${task.task_id} (${task.task_name}) isComplete:`, isComplete)
+
+        // Use "Uncategorized" for null categories
+        const category = task.category || "Uncategorized"
+
+        if (!tasksByCategory[category]) {
+          tasksByCategory[category] = []
+        }
+
+        tasksByCategory[category].push({
+          ...task,
+          isComplete,
+        })
+      })
+
+      console.log("[groupTasksByCategory] Grouped tasks:", tasksByCategory)
+
+      // Convert to array and sort categories
+      const categoriesArray = Object.entries(tasksByCategory).map(([name, tasks]) => ({
+        name,
+        tasks,
+        isComplete: tasks.every((task) => task.isComplete),
+      }))
+
+      // Sort categories alphabetically, but keep "Uncategorized" at the end
+      categoriesArray.sort((a, b) => {
+        if (a.name === "Uncategorized") return 1
+        if (b.name === "Uncategorized") return -1
+        return a.name.localeCompare(b.name)
+      })
+
+      console.log("[Render] Rendering categories:", categoriesArray.length)
+      categoriesArray.forEach((category) => {
+        console.log(`[Render] Rendering tasks for category: ${category.name}, ${category.tasks.length} tasks`)
+      })
+
+      setCategories(categoriesArray)
+    }
+
+    // Mock data for development/preview
+    function getMockTasks(): Task[] {
+      return [
+        {
+          task_id: "1",
+          task_name: "Cash Flow Statement",
+          description: "Annual cash flow statement for the past 3 years",
+          task_type: "document-upload",
+          category: "Financial Documents",
+          seller_id: businessId,
+        },
+        {
+          task_id: "2",
+          task_name: "Income Statement",
+          description: "Income statement for the past 3 years",
+          task_type: "document-upload",
+          category: "Financial Documents",
+          seller_id: businessId,
+        },
+        {
+          task_id: "3",
+          task_name: "Balance Sheet",
+          description: "Current balance sheet",
+          task_type: "document-upload",
+          category: "Financial Documents",
+          seller_id: businessId,
+        },
+        {
+          task_id: "4",
+          task_name: "Tax Returns",
+          description: "Business tax returns for the past 3 years",
+          task_type: "document-upload",
+          category: "Financial Documents",
+          seller_id: businessId,
+        },
+        {
+          task_id: "5",
+          task_name: "YTD Financials",
+          description: "Year-to-date financial statements",
+          task_type: "document-upload",
+          category: "Financial Documents",
+          seller_id: businessId,
+        },
+        {
+          task_id: "6",
+          task_name: "Business License",
+          description: "Current business license and permits",
+          task_type: "document-upload",
+          category: "Legal",
+          seller_id: businessId,
+        },
+        {
+          task_id: "7",
+          task_name: "Employee Handbook",
+          description: "Current employee handbook and policies",
+          task_type: "document-upload",
+          category: "Human Resources",
+          seller_id: businessId,
+        },
+      ]
+    }
+
+    function getMockFiles(): UploadedFile[] {
+      return [
+        {
+          id: "file-1",
+          task_id: "1",
+          status: "processed",
+        },
+        {
+          id: "file-2",
+          task_id: "3",
+          status: "processed",
+        },
+      ]
     }
 
     fetchTasksAndFiles()

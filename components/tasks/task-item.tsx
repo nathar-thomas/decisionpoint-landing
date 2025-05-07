@@ -1,4 +1,7 @@
+"use client"
+
 import { CheckCircle, AlertCircle } from "lucide-react"
+import { useEffect } from "react"
 
 interface TaskItemProps {
   task: {
@@ -10,6 +13,11 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task }: TaskItemProps) {
+  console.log(`[TaskItem] Rendering task: ${task.task_name}, isComplete: ${task.isComplete}`)
+  useEffect(() => {
+    console.log(`[TaskItem] Rendering task: ${task.task_name}, id: ${task.task_id}, complete: ${task.isComplete}`)
+  }, [task])
+
   return (
     <div className="p-3 border rounded-lg bg-white">
       <div className="flex items-start justify-between">

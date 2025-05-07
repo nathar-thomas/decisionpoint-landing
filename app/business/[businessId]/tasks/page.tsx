@@ -10,6 +10,19 @@ export default function BusinessTasksPage() {
 
   useEffect(() => {
     console.log("🔍 [BusinessTasks] Mounted with businessId:", businessId)
+
+    // Add debug flag for conditional visual logging
+    const isDebugMode =
+      process.env.NODE_ENV === "development" ||
+      (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "true")
+
+    if (isDebugMode) {
+      console.log("[BusinessTasks] Debug mode enabled")
+    }
+
+    return () => {
+      console.log("[BusinessTasks] Unmounting component")
+    }
   }, [businessId])
 
   return (
