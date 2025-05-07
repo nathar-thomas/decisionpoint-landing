@@ -37,32 +37,24 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
     async function fetchTasksAndFiles() {
       try {
         setIsLoading(true)
-        console.log("[fetchTasksAndFiles] Fetching tasks and files for business:", businessId)
 
-        // Check if businessId is a valid UUID
-        const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId)
+        // 1. Add UUID validation using the provided regex
+        const isValidUUID = (uuid: string) =>
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
 
-        if (!isValidUUID) {
-          console.warn("[fetchTasksAndFiles] BusinessId is not a valid UUID:", businessId)
-          console.log("[fetchTasksAndFiles] Using mock data for development")
+        // 2. Determine the businessId
+        const validatedBusinessId = isValidUUID(businessId) ? businessId : "37add0e6-16d4-4607-b057-7e7a1ede55f1" // fallback UUID
 
-          // Use mock data for development/preview
-          const mockTasks = getMockTasks()
-          const mockFiles = getMockFiles()
+        // 3. Log each step for debugging
+        console.log("[fetchTasksAndFiles] Raw businessId param:", businessId)
+        console.log("[fetchTasksAndFiles] UUID is valid:", isValidUUID(businessId))
+        console.log("[fetchTasksAndFiles] Using businessId for fetch:", validatedBusinessId)
 
-          console.log("[fetchTasksAndFiles] Mock tasks:", mockTasks)
-          console.log("[fetchTasksAndFiles] Mock files:", mockFiles)
-
-          processTasksAndFiles(mockTasks, mockFiles)
-          return
-        }
-
-        // Fetch tasks for this business
-        console.log("[fetchTasksAndFiles] Querying tasks table with seller_id:", businessId)
+        // 4. Use validatedBusinessId in all Supabase queries
         const { data: tasks, error: tasksError } = await supabase
           .from("tasks")
           .select("*")
-          .eq("seller_id", businessId)
+          .eq("seller_id", validatedBusinessId)
           .order("task_name")
 
         if (tasksError) {
@@ -72,12 +64,11 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
 
         console.log("[fetchTasksAndFiles] Fetched tasks:", tasks)
 
-        // Fetch uploaded files for this business
-        console.log("[fetchTasksAndFiles] Querying uploaded_files with business_id:", businessId)
+        // Fetch uploaded files for this business using the validated ID
         const { data: files, error: filesError } = await supabase
           .from("uploaded_files")
           .select("id, task_id, status")
-          .eq("business_id", businessId)
+          .eq("business_id", validatedBusinessId)
 
         if (filesError) {
           console.error("[fetchTasksAndFiles] Error fetching files:", filesError)
@@ -86,6 +77,7 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
 
         console.log("[fetchTasksAndFiles] Fetched uploaded files:", files)
 
+        // Process tasks and files
         processTasksAndFiles(tasks || [], files || [])
       } catch (err) {
         console.error("[fetchTasksAndFiles] Error:", err)
@@ -142,83 +134,6 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
       })
 
       setCategories(categoriesArray)
-    }
-
-    // Mock data for development/preview
-    function getMockTasks(): Task[] {
-      return [
-        {
-          task_id: "1",
-          task_name: "Cash Flow Statement",
-          description: "Annual cash flow statement for the past 3 years",
-          task_type: "document-upload",
-          category: "Financial Documents",
-          seller_id: businessId,
-        },
-        {
-          task_id: "2",
-          task_name: "Income Statement",
-          description: "Income statement for the past 3 years",
-          task_type: "document-upload",
-          category: "Financial Documents",
-          seller_id: businessId,
-        },
-        {
-          task_id: "3",
-          task_name: "Balance Sheet",
-          description: "Current balance sheet",
-          task_type: "document-upload",
-          category: "Financial Documents",
-          seller_id: businessId,
-        },
-        {
-          task_id: "4",
-          task_name: "Tax Returns",
-          description: "Business tax returns for the past 3 years",
-          task_type: "document-upload",
-          category: "Financial Documents",
-          seller_id: businessId,
-        },
-        {
-          task_id: "5",
-          task_name: "YTD Financials",
-          description: "Year-to-date financial statements",
-          task_type: "document-upload",
-          category: "Financial Documents",
-          seller_id: businessId,
-        },
-        {
-          task_id: "6",
-          task_name: "Business License",
-          description: "Current business license and permits",
-          task_type: "document-upload",
-          category: "Legal",
-          seller_id: businessId,
-        },
-        {
-          task_id: "7",
-          task_name: "Employee Handbook",
-          description: "Current employee handbook and policies",
-          task_type: "document-upload",
-          category: "Human Resources",
-          seller_id: businessId,
-        },
-      ]
-    }
-
-    function getMockFiles(): UploadedFile[] {
-      return [
-        {
-          id: "file-1",
-          task_id: "1",
-          status: "processed",
-        },
-        {
-          id: "file-2",
-          task_id: "3",
-          status: "processed",
-        },
-      ]
     }
 
     fetchTasksAndFiles()

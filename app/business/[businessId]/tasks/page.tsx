@@ -8,8 +8,14 @@ export default function BusinessTasksPage() {
   const params = useParams()
   const businessId = params.businessId as string
 
+  // Add UUID validation function
+  const isValidUUID = (uuid: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
+
   useEffect(() => {
-    console.log("🔍 [BusinessTasks] Mounted with businessId:", businessId)
+    // Log validation steps at the page level
+    console.log("[BusinessTasks] Mounted with businessId:", businessId)
+    console.log("[BusinessTasks] UUID is valid:", isValidUUID(businessId))
 
     // Add debug flag for conditional visual logging
     const isDebugMode =
