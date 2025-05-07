@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useParams } from "next/navigation"
-import { TasksDocuments } from "@/components/tasks-documents"
+import { TasksCategoryView } from "@/components/tasks/tasks-category-view"
 
 export default function BusinessTasksPage() {
   const params = useParams()
@@ -16,12 +16,10 @@ export default function BusinessTasksPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-        <p className="text-muted-foreground">
-          Upload required financial documents to begin analysis and fulfill broker requirements.
-        </p>
+        <p className="text-muted-foreground">Complete the required tasks to prepare your business for listing.</p>
       </div>
 
-      <TasksDocuments />
+      <TasksCategoryView businessId={businessId} />
     </div>
   )
 }
