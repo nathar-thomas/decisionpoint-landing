@@ -18,8 +18,18 @@ export default async function Dashboard() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Mock business ID for initial implementation
-  const mockBusinessId = "mock-business-1"
+  // Fetch the first business associated with this user
+  const { data: businesses, error } = await supabase
+    .from("businesses")
+    .select("id, name")
+    .eq("user_id", user?.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+
+  // Use the fetched business ID or fallback to a valid UUID if none exists
+  const businessId = businesses && businesses.length > 0 ? businesses[0].id : "37add0e6-16d4-4607-b057-7e7a1ede55f1" // fallback UUID
+
+  const businessName = businesses && businesses.length > 0 ? businesses[0].name : "Your Business"
 
   return (
     <div className="container mx-auto py-10">
@@ -30,8 +40,8 @@ export default async function Dashboard() {
         </p>
         <p className="text-muted-foreground">You are now signed in.</p>
         <div className="mt-4">
-          <Link href={`/business/${mockBusinessId}`} className="text-primary hover:underline">
-            Business Profile
+          <Link href={`/business/${businessId}`} className="text-primary hover:underline">
+            {businessName} Profile
           </Link>
         </div>
       </div>
