@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { uploadTaskFile } from "@/utils/upload-task-file"
@@ -18,6 +18,7 @@ interface UploadButtonProps {
 export function UploadButton({ taskId, businessId, disabled = false, onSuccess }: UploadButtonProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
+  const uploadLockRef = useRef(false) // Use ref for upload locking to prevent race conditions
   const { toast } = useToast()
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +29,13 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
       return
     }
 
+    // Prevent multiple simultaneous uploads
+    if (uploadLockRef.current) {
+      console.log("[UploadButton] Upload already in progress, ignoring")
+      return
+    }
+
+    uploadLockRef.current = true
     setIsUploading(true)
     setUploadStatus("uploading")
 
@@ -67,6 +75,8 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
       })
     } finally {
       setIsUploading(false)
+      uploadLockRef.current = false // Release the upload lock
+
       // Reset status after a delay
       setTimeout(() => {
         setUploadStatus("idle")
@@ -80,7 +90,7 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
         size="sm"
         variant={uploadStatus === "success" ? "success" : uploadStatus === "error" ? "destructive" : "outline"}
         onClick={() => document.getElementById(`file-upload-${taskId}`).click()}
-        disabled={isUploading || disabled}
+        disabled={isUploading || disabled || uploadLockRef.current}
       >
         {uploadStatus === "uploading" ? (
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -105,6 +115,7 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
         className="hidden"
         onChange={handleFileChange}
         accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+        disabled={isUploading || uploadLockRef.current}
       />
     </>
   )

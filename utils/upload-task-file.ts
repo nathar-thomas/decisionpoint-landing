@@ -81,22 +81,27 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
 
     // Get the public URL for the uploaded file
     const { data: publicUrlData } = supabase.storage.from("task-documents").getPublicUrl(filePath)
+    const fileUrl = publicUrlData?.publicUrl || null
 
-    const publicUrl = publicUrlData?.publicUrl || ""
+    console.log("[UploadTaskFile] Generated public URL:", fileUrl)
 
-    // Create database record in uploaded_files table
+    // Create database record in uploaded_files table with the file_url
+    const insertData = {
+      filename: file.name,
+      file_path: filePath,
+      file_url: fileUrl, // Store the public URL
+      file_type: file.type,
+      task_id: taskId,
+      business_id: businessId,
+      user_id: userData.user.id,
+      status: "processed", // Mark as processed immediately
+    }
+
+    console.log("[UploadTaskFile] Inserting file metadata:", insertData)
+
     const { data: recordData, error: dbError } = await supabase
       .from("uploaded_files")
-      .insert({
-        filename: file.name,
-        file_path: filePath,
-        file_type: file.type,
-        task_id: taskId,
-        business_id: businessId,
-        user_id: userData.user.id,
-        status: "processed", // Mark as processed immediately
-        file_url: publicUrl, // Store the public URL if available
-      })
+      .insert(insertData)
       .select()
       .single()
 
@@ -122,7 +127,7 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
       success: true,
       filePath,
       fileRecord: recordData,
-      publicUrl,
+      publicUrl: fileUrl,
     }
   } catch (error) {
     console.error("[UploadTaskFile] Unexpected error:", error)

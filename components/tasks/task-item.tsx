@@ -18,6 +18,7 @@ interface TaskItemProps {
 
 export function TaskItem({ task, businessId }: TaskItemProps) {
   const [isComplete, setIsComplete] = useState(task.isComplete)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   console.log("[TaskItem] Rendering task:", {
     name: task.task_name,
@@ -34,6 +35,9 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
   const handleUploadSuccess = () => {
     // Mark the task as complete after successful upload
     setIsComplete(true)
+
+    // Trigger a refresh of the file list
+    setRefreshTrigger((prev) => prev + 1)
   }
 
   return (
@@ -43,8 +47,8 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           <h4 className="font-medium">{task.task_name}</h4>
           {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
 
-          {/* Show uploaded files for this task */}
-          <TaskUploads taskId={task.task_id} businessId={businessId} />
+          {/* Show uploaded files for this task with refresh trigger */}
+          <TaskUploads taskId={task.task_id} businessId={businessId} refreshTrigger={refreshTrigger} />
         </div>
         <div className="flex items-center gap-2">
           <div

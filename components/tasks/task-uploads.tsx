@@ -8,48 +8,73 @@ import { Button } from "@/components/ui/button"
 interface TaskUploadsProps {
   taskId: string
   businessId: string
+  refreshTrigger?: number // Optional prop to trigger refresh
 }
 
 interface UploadedFile {
   id: string
   filename: string
-  file_url: string
+  file_url?: string | null
+  file_path?: string | null
   created_at: string
   status: string
 }
 
-export function TaskUploads({ taskId, businessId }: TaskUploadsProps) {
+export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUploadsProps) {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClientComponentClient()
 
+  // Fetch files with proper cleanup and delay
   useEffect(() => {
-    fetchFiles()
-  }, [taskId, businessId])
+    let isMounted = true
+    let timeoutId: NodeJS.Timeout | null = null
 
-  const fetchFiles = async () => {
-    try {
-      setIsLoading(true)
+    const fetchFiles = async () => {
+      try {
+        setIsLoading(true)
 
-      const { data, error } = await supabase
-        .from("uploaded_files")
-        .select("id, filename, file_url, created_at, status")
-        .eq("task_id", taskId)
-        .eq("business_id", businessId)
-        .order("created_at", { ascending: false })
+        console.log("[TaskUploads] Fetching files for task:", taskId, "business:", businessId)
 
-      if (error) {
-        console.error("[TaskUploads] Error fetching files:", error)
-        return
+        const { data, error } = await supabase
+          .from("uploaded_files")
+          .select("id, filename, file_url, file_path, created_at, status")
+          .eq("task_id", taskId)
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false })
+
+        if (error) {
+          console.error("[TaskUploads] Error fetching files:", error)
+          return
+        }
+
+        console.log("[TaskUploads] Fetched files:", data?.length || 0, data)
+
+        if (isMounted) {
+          setFiles(data || [])
+          setIsLoading(false)
+        }
+      } catch (err) {
+        console.error("[TaskUploads] Unexpected error:", err)
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
-
-      setFiles(data || [])
-    } catch (err) {
-      console.error("[TaskUploads] Unexpected error:", err)
-    } finally {
-      setIsLoading(false)
     }
-  }
+
+    // Add a small delay before fetching to allow for database consistency
+    timeoutId = setTimeout(fetchFiles, 300)
+
+    return () => {
+      isMounted = false
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [taskId, businessId, supabase, refreshTrigger])
+
+  // Log the files being rendered
+  useEffect(() => {
+    console.log("[TaskUploads] Rendering files:", files)
+  }, [files])
 
   if (isLoading) {
     return (
@@ -72,18 +97,26 @@ export function TaskUploads({ taskId, businessId }: TaskUploadsProps) {
           <div key={file.id} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-xs">
             <div className="flex items-center">
               <FileText className="h-3 w-3 mr-2 text-blue-500" />
-              <span className="truncate max-w-[150px]">{file.filename}</span>
+              {file.file_url ? (
+                <span className="truncate max-w-[150px]">{file.filename}</span>
+              ) : (
+                <span className="text-muted-foreground">{file.filename} (Processing...)</span>
+              )}
             </div>
-            {file.file_url && (
+            {file.file_url ? (
               <Button
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0"
-                onClick={() => window.open(file.file_url, "_blank")}
+                onClick={() => window.open(file.file_url!, "_blank")}
                 title="View file"
               >
                 <ExternalLink className="h-3 w-3" />
               </Button>
+            ) : (
+              <div className="h-6 w-6 flex items-center justify-center">
+                <Loader2 className="h-3 w-3 animate-spin" />
+              </div>
             )}
           </div>
         ))}
