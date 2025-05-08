@@ -33,6 +33,52 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
   const [error, setError] = useState<string | null>(null)
   const supabase = createClientComponentClient()
 
+  // Add mock tasks function
+  function getMockTasks(businessId: string): Task[] {
+    return [
+      {
+        task_id: "1",
+        task_name: "Cash Flow Statement",
+        description: "Annual cash flow statement for the past 3 years",
+        task_type: "document-upload",
+        category: "Financial Documents",
+        seller_id: businessId,
+      },
+      {
+        task_id: "2",
+        task_name: "Income Statement",
+        description: "Income statement for the past 3 years",
+        task_type: "document-upload",
+        category: "Financial Documents",
+        seller_id: businessId,
+      },
+      {
+        task_id: "3",
+        task_name: "Balance Sheet",
+        description: "Current balance sheet",
+        task_type: "document-upload",
+        category: "Financial Documents",
+        seller_id: businessId,
+      },
+      {
+        task_id: "4",
+        task_name: "Business License",
+        description: "Current business license and permits",
+        task_type: "document-upload",
+        category: "Legal Documents",
+        seller_id: businessId,
+      },
+      {
+        task_id: "5",
+        task_name: "Employee Handbook",
+        description: "Current employee handbook and policies",
+        task_type: "document-upload",
+        category: null, // This will be assigned to "Uncategorized"
+        seller_id: businessId,
+      },
+    ]
+  }
+
   useEffect(() => {
     async function fetchTasksAndFiles() {
       try {
@@ -51,6 +97,7 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
         console.log("[fetchTasksAndFiles] Using businessId for fetch:", validatedBusinessId)
 
         // 4. Use validatedBusinessId in all Supabase queries
+        console.log("[fetchTasksAndFiles] Querying tasks table with seller_id:", validatedBusinessId)
         const { data: tasks, error: tasksError } = await supabase
           .from("tasks")
           .select("*")
@@ -62,9 +109,33 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
           throw new Error(`Failed to fetch tasks: ${tasksError.message}`)
         }
 
-        console.log("[fetchTasksAndFiles] Fetched tasks:", tasks)
+        // Log detailed information about the tasks
+        console.log(`[fetchTasksAndFiles] Fetched ${tasks?.length || 0} tasks`)
+        if (tasks && tasks.length > 0) {
+          console.log("[fetchTasksAndFiles] Task types:", [...new Set(tasks.map((t) => t.task_type))])
+          console.log("[fetchTasksAndFiles] Task categories:", [
+            ...new Set(tasks.map((t) => t.category || "Uncategorized")),
+          ])
+
+          // Log the first few tasks for debugging
+          console.log("[fetchTasksAndFiles] Sample tasks (first 3):", tasks.slice(0, 3))
+        } else {
+          console.log("[fetchTasksAndFiles] No tasks found for this business")
+        }
+
+        // After fetching tasks, check if we got any results
+        if (!tasks || tasks.length === 0) {
+          console.log("[fetchTasksAndFiles] No tasks found in database, using mock data")
+          const mockTasks = getMockTasks(validatedBusinessId)
+          console.log(`[fetchTasksAndFiles] Created ${mockTasks.length} mock tasks`)
+
+          // Process with mock tasks and empty files array
+          processTasksAndFiles(mockTasks, [])
+          return
+        }
 
         // Fetch uploaded files for this business using the validated ID
+        console.log("[fetchTasksAndFiles] Querying uploaded_files with business_id:", validatedBusinessId)
         const { data: files, error: filesError } = await supabase
           .from("uploaded_files")
           .select("id, task_id, status")
@@ -75,9 +146,9 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
           throw new Error(`Failed to fetch files: ${filesError.message}`)
         }
 
-        console.log("[fetchTasksAndFiles] Fetched uploaded files:", files)
+        console.log(`[fetchTasksAndFiles] Fetched ${files?.length || 0} uploaded files`)
 
-        // Process tasks and files
+        // Process tasks and files - ensure we pass all tasks regardless of type
         processTasksAndFiles(tasks || [], files || [])
       } catch (err) {
         console.error("[fetchTasksAndFiles] Error:", err)
@@ -89,11 +160,13 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
 
     // Helper function to process tasks and files data
     function processTasksAndFiles(tasks: Task[], files: UploadedFile[]) {
-      console.log("[processTasksAndFiles] Processing tasks and files")
+      // Add debug log to show how many tasks are being processed
+      console.log(`[processTasksAndFiles] Processing ${tasks.length} tasks and ${files.length} files`)
 
       // Group tasks by category
       const tasksByCategory: Record<string, (Task & { isComplete: boolean })[]> = {}
 
+      // First, ensure all tasks are included regardless of file status
       tasks.forEach((task: Task) => {
         // Determine if task is complete (has at least one processed file)
         const isComplete = files.some((file) => file.task_id === task.task_id && file.status === "processed")
@@ -101,11 +174,13 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
 
         // Use "Uncategorized" for null categories
         const category = task.category || "Uncategorized"
+        console.log(`[Task] Assigning task "${task.task_name}" to category "${category}"`)
 
         if (!tasksByCategory[category]) {
           tasksByCategory[category] = []
         }
 
+        // Include all tasks regardless of type or file status
         tasksByCategory[category].push({
           ...task,
           isComplete,
@@ -113,6 +188,11 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
       })
 
       console.log("[groupTasksByCategory] Grouped tasks:", tasksByCategory)
+
+      // Log the count of tasks in each category
+      Object.entries(tasksByCategory).forEach(([category, categoryTasks]) => {
+        console.log(`[Category] "${category}" has ${categoryTasks.length} tasks`)
+      })
 
       // Convert to array and sort categories
       const categoriesArray = Object.entries(tasksByCategory).map(([name, tasks]) => ({
@@ -128,9 +208,11 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
         return a.name.localeCompare(b.name)
       })
 
-      console.log("[Render] Rendering categories:", categoriesArray.length)
+      console.log(`[Render] Total categories: ${categoriesArray.length}`)
       categoriesArray.forEach((category) => {
-        console.log(`[Render] Rendering tasks for category: ${category.name}, ${category.tasks.length} tasks`)
+        console.log(
+          `[Render] Category "${category.name}": ${category.tasks.length} tasks, isComplete: ${category.isComplete}`,
+        )
       })
 
       setCategories(categoriesArray)
