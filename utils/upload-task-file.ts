@@ -11,13 +11,19 @@ import { v4 as uuidv4 } from "uuid"
 export async function uploadTaskFile(file: File, taskId: string, businessId: string) {
   const supabase = createClientComponentClient()
 
-  // Log upload attempt
-  console.log("[UploadTaskFile] Starting upload:", {
-    filename: file.name,
-    fileSize: file.size,
-    fileType: file.type,
+  // Strict UUID validation
+  const isValidUUID = (id: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    return uuidRegex.test(id)
+  }
+
+  // Enhanced debug logging for upload tracking
+  console.log("[UploadTaskFile] Starting upload", {
     taskId,
     businessId,
+    isValidTaskId: isValidUUID(taskId),
+    isValidBusinessId: isValidUUID(businessId),
+    filename: file?.name,
   })
 
   // Validate inputs
@@ -31,20 +37,7 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
     throw new Error("Missing task or business information")
   }
 
-  // Modified UUID validation - always accept numeric IDs and log them
-  const isValidUUID = (id: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-    // Accept numeric IDs for development/testing
-    if (/^\d+$/.test(id)) {
-      console.log(`[UploadTaskFile] Accepting numeric ID: ${id}`)
-      return true
-    }
-
-    return uuidRegex.test(id)
-  }
-
-  // Update the validation check to use our new function
+  // Strict validation check
   if (!isValidUUID(taskId) || !isValidUUID(businessId)) {
     console.error("[UploadTaskFile] Invalid UUID format:", { taskId, businessId })
     throw new Error("Invalid task or business ID format")
