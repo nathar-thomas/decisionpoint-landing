@@ -16,6 +16,14 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task, businessId }: TaskItemProps) {
+  console.log("[TaskItem] Rendering task:", {
+    name: task.task_name,
+    id: task.task_id,
+    type: typeof task.task_id,
+    businessId,
+    businessIdType: typeof businessId,
+  })
+
   console.log(`[TaskItem] Rendering task: ${task.task_name}, isComplete: ${task.isComplete}, type: ${task.task_type}`)
 
   useEffect(() => {

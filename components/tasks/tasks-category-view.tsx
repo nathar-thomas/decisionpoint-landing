@@ -104,6 +104,9 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
           .eq("seller_id", validatedBusinessId)
           .order("task_name")
 
+        console.log("[fetchTasksAndFiles] Supabase query result:", tasks)
+        console.log("[fetchTasksAndFiles] Supabase query error:", tasksError)
+
         if (tasksError) {
           console.error("[fetchTasksAndFiles] Error fetching tasks:", tasksError)
           throw new Error(`Failed to fetch tasks: ${tasksError.message}`)
@@ -127,7 +130,7 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
         if (!tasks || tasks.length === 0) {
           console.log("[fetchTasksAndFiles] No tasks found in database, using mock data")
           const mockTasks = getMockTasks(validatedBusinessId)
-          console.log(`[fetchTasksAndFiles] Created ${mockTasks.length} mock tasks`)
+          console.log(`[fetchTasksAndFiles] Created ${mockTasks.length} mock tasks:`, mockTasks)
 
           // Process with mock tasks and empty files array
           processTasksAndFiles(mockTasks, [])
@@ -168,6 +171,12 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
 
       // First, ensure all tasks are included regardless of file status
       tasks.forEach((task: Task) => {
+        console.log("[TaskItem] Rendering task:", {
+          name: task.task_name,
+          id: task.task_id,
+          type: typeof task.task_id,
+        })
+
         // Determine if task is complete (has at least one processed file)
         const isComplete = files.some((file) => file.task_id === task.task_id && file.status === "processed")
         console.log(`[Status] Task ${task.task_id} (${task.task_name}) isComplete:`, isComplete)
