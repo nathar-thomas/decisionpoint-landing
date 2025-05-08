@@ -31,13 +31,13 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
     throw new Error("Missing task or business information")
   }
 
-  // Validate UUIDs
+  // Modified UUID validation - always accept numeric IDs and log them
   const isValidUUID = (id: string) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-    // For development/testing, allow simple numeric IDs
-    if (process.env.NODE_ENV === "development" && /^\d+$/.test(id)) {
-      console.log(`[UploadTaskFile] Using numeric ID in development mode: ${id}`)
+    // Accept numeric IDs for development/testing
+    if (/^\d+$/.test(id)) {
+      console.log(`[UploadTaskFile] Accepting numeric ID: ${id}`)
       return true
     }
 
