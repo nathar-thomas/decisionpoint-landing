@@ -1,8 +1,9 @@
 "use client"
 
 import { CheckCircle, AlertCircle } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { UploadButton } from "@/components/tasks/upload-button"
+import { TaskUploads } from "@/components/tasks/task-uploads"
 
 interface TaskItemProps {
   task: {
@@ -16,6 +17,8 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task, businessId }: TaskItemProps) {
+  const [isComplete, setIsComplete] = useState(task.isComplete)
+
   console.log("[TaskItem] Rendering task:", {
     name: task.task_name,
     id: task.task_id,
@@ -24,11 +27,14 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
     businessIdType: typeof businessId,
   })
 
-  console.log(`[TaskItem] Rendering task: ${task.task_name}, isComplete: ${task.isComplete}, type: ${task.task_type}`)
-
   useEffect(() => {
-    console.log(`[TaskItem] Mounted task: ${task.task_name}, id: ${task.task_id}, complete: ${task.isComplete}`)
-  }, [task])
+    console.log(`[TaskItem] Mounted task: ${task.task_name}, id: ${task.task_id}, complete: ${isComplete}`)
+  }, [task, isComplete])
+
+  const handleUploadSuccess = () => {
+    // Mark the task as complete after successful upload
+    setIsComplete(true)
+  }
 
   return (
     <div className="p-3 border rounded-lg bg-white">
@@ -36,14 +42,17 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
         <div className="space-y-1">
           <h4 className="font-medium">{task.task_name}</h4>
           {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
+
+          {/* Show uploaded files for this task */}
+          <TaskUploads taskId={task.task_id} businessId={businessId} />
         </div>
         <div className="flex items-center gap-2">
           <div
             className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              task.isComplete ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"
+              isComplete ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"
             }`}
           >
-            {task.isComplete ? (
+            {isComplete ? (
               <>
                 <CheckCircle className="h-3 w-3 mr-1" />
                 <span>Complete</span>
@@ -57,7 +66,14 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           </div>
 
           {/* Only show upload button for document-upload tasks */}
-          {task.task_type === "document-upload" && <UploadButton taskId={task.task_id} businessId={businessId} />}
+          {task.task_type === "document-upload" && (
+            <UploadButton
+              taskId={task.task_id}
+              businessId={businessId}
+              disabled={isComplete}
+              onSuccess={handleUploadSuccess}
+            />
+          )}
         </div>
       </div>
     </div>

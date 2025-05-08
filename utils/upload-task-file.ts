@@ -64,7 +64,7 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
 
     console.log("[UploadTaskFile] Uploading to path:", filePath)
 
-    // Upload to Storage
+    // Upload to Storage - using the task-documents bucket
     const { data: fileData, error: uploadError } = await supabase.storage
       .from("task-documents")
       .upload(filePath, file, {
@@ -79,7 +79,12 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
 
     console.log("[UploadTaskFile] File uploaded successfully:", fileData)
 
-    // Create database record
+    // Get the public URL for the uploaded file
+    const { data: publicUrlData } = supabase.storage.from("task-documents").getPublicUrl(filePath)
+
+    const publicUrl = publicUrlData?.publicUrl || ""
+
+    // Create database record in uploaded_files table
     const { data: recordData, error: dbError } = await supabase
       .from("uploaded_files")
       .insert({
@@ -89,7 +94,8 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
         task_id: taskId,
         business_id: businessId,
         user_id: userData.user.id,
-        status: "pending",
+        status: "processed", // Mark as processed immediately
+        file_url: publicUrl, // Store the public URL if available
       })
       .select()
       .single()
@@ -101,10 +107,22 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
 
     console.log("[UploadTaskFile] Database record created:", recordData)
 
+    // Update the task status to "In Progress" or "Completed"
+    const { error: taskUpdateError } = await supabase
+      .from("tasks")
+      .update({ task_status: "Completed" })
+      .eq("task_id", taskId)
+
+    if (taskUpdateError) {
+      console.warn("[UploadTaskFile] Failed to update task status:", taskUpdateError)
+      // Continue execution even if task update fails
+    }
+
     return {
       success: true,
       filePath,
       fileRecord: recordData,
+      publicUrl,
     }
   } catch (error) {
     console.error("[UploadTaskFile] Unexpected error:", error)
