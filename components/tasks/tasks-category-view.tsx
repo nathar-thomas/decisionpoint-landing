@@ -126,16 +126,8 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
           console.log("[fetchTasksAndFiles] No tasks found for this business")
         }
 
-        // After fetching tasks, check if we got any results
-        if (!tasks || tasks.length === 0) {
-          console.log("[fetchTasksAndFiles] No tasks found in database, using mock data")
-          const mockTasks = getMockTasks(validatedBusinessId)
-          console.log(`[fetchTasksAndFiles] Created ${mockTasks.length} mock tasks:`, mockTasks)
-
-          // Process with mock tasks and empty files array
-          processTasksAndFiles(mockTasks, [])
-          return
-        }
+        // Add diagnostic logging to confirm proper UUIDs
+        console.log("[fetchTasksAndFiles] Final task list:", tasks)
 
         // Fetch uploaded files for this business using the validated ID
         console.log("[fetchTasksAndFiles] Querying uploaded_files with business_id:", validatedBusinessId)
