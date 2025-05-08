@@ -271,7 +271,7 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
             <AccordionContent>
               <div className="mt-2 space-y-3">
                 {category.tasks.map((task) => (
-                  <TaskItem key={task.task_id} task={task} />
+                  <TaskItem key={task.task_id} task={task} businessId={businessId} />
                 ))}
               </div>
             </AccordionContent>
