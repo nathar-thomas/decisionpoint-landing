@@ -32,8 +32,20 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
   }
 
   // Validate UUIDs
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  if (!uuidRegex.test(taskId) || !uuidRegex.test(businessId)) {
+  const isValidUUID = (id: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+    // For development/testing, allow simple numeric IDs
+    if (process.env.NODE_ENV === "development" && /^\d+$/.test(id)) {
+      console.log(`[UploadTaskFile] Using numeric ID in development mode: ${id}`)
+      return true
+    }
+
+    return uuidRegex.test(id)
+  }
+
+  // Update the validation check to use our new function
+  if (!isValidUUID(taskId) || !isValidUUID(businessId)) {
     console.error("[UploadTaskFile] Invalid UUID format:", { taskId, businessId })
     throw new Error("Invalid task or business ID format")
   }
