@@ -141,15 +141,20 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
             <div className="flex items-center justify-between py-2">
               {responseValue ? (
                 <>
-                  {/* Center: response text with 3-line wrapping */}
-                  <div className="flex-1 text-center mr-4">
-                    <span className="text-gray-800 text-xs line-clamp-3" title={responseValue}>
-                      {responseValue}
-                    </span>
+                  {/* Left: response text */}
+                  <div
+                    className="flex-1 max-w-[60%] text-left text-gray-800 text-xs overflow-hidden"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
+                    {responseValue}
                   </div>
-                  {/* Right side: Edit link */}
+                  {/* Right: Edit link */}
                   <span
-                    className="text-blue-600 hover:underline cursor-pointer text-sm flex-shrink-0"
+                    className="text-blue-600 hover:underline cursor-pointer text-sm ml-4"
                     onClick={() => {
                       setIsModalOpen(true)
                       console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
@@ -161,10 +166,10 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
               ) : (
                 <>
                   {/* Left side: Info Needed text */}
-                  <span className="text-xs font-medium text-amber-600 mr-4">Info Needed</span>
+                  <span className="text-xs font-medium text-amber-600">Info Needed</span>
                   {/* Right side: Add Info link */}
                   <span
-                    className="text-blue-600 hover:underline cursor-pointer text-sm"
+                    className="text-blue-600 hover:underline cursor-pointer text-sm ml-4"
                     onClick={() => {
                       setIsModalOpen(true)
                       console.log("[TaskItem] ▶️", task.task_id, "Add Info link clicked")
