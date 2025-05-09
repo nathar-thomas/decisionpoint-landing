@@ -41,44 +41,42 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
   return (
     <div className="p-3 border rounded-lg bg-white">
-      <div className="flex flex-col space-y-2">
-        {/* Task title and description */}
-        <div>
-          <h4 className="font-medium">{task.task_name}</h4>
-          {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
+      <div className="flex items-center justify-between">
+        {/* Task title on the left */}
+        <div className="flex-shrink-0 max-w-[30%]">
+          <h4 className="font-medium truncate">{task.task_name}</h4>
+          {task.description && <p className="text-xs text-muted-foreground truncate">{task.description}</p>}
         </div>
 
-        {/* Center row with status or file info */}
-        <div className="flex items-center justify-between">
-          <div className="flex-grow">
-            {/* Show "Needed" status when no file is uploaded */}
-            {!isComplete && (
-              <div className="flex items-center">
-                <span className="text-xs font-medium text-amber-600">Needed</span>
-              </div>
-            )}
-
-            {/* Show uploaded files for this task with refresh trigger */}
-            <TaskUploads
-              taskId={task.task_id}
-              businessId={businessId}
-              refreshTrigger={refreshTrigger}
-              showAsInline={true}
-            />
-          </div>
-
-          {/* Upload button - always visible */}
-          {task.task_type === "document-upload" && (
-            <div className="flex-shrink-0">
-              <UploadButton
-                taskId={task.task_id}
-                businessId={businessId}
-                onSuccess={handleUploadSuccess}
-                alwaysEnabled={true}
-              />
+        {/* Status or file info in the center */}
+        <div className="flex-grow flex justify-center">
+          {/* Show "Needed" status when no file is uploaded */}
+          {!isComplete && (
+            <div className="flex items-center">
+              <span className="text-xs font-medium text-amber-600">Needed</span>
             </div>
           )}
+
+          {/* Show uploaded files for this task with refresh trigger */}
+          <TaskUploads
+            taskId={task.task_id}
+            businessId={businessId}
+            refreshTrigger={refreshTrigger}
+            showAsInline={true}
+          />
         </div>
+
+        {/* Upload button on the right */}
+        {task.task_type === "document-upload" && (
+          <div className="flex-shrink-0">
+            <UploadButton
+              taskId={task.task_id}
+              businessId={businessId}
+              onSuccess={handleUploadSuccess}
+              alwaysEnabled={true}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
