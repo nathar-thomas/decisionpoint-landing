@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -10,9 +9,13 @@ export async function POST(request: Request) {
     console.log("[task-responses] 📥 Payload:", body)
     console.log("[task-responses] ▶️ Skipping auth — payload:", body)
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service-role key to bypass RLS
     console.log("[task-responses] 🔗 Initializing Supabase client")
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY, // ensure this env var is set
+    )
+    console.log("[task-responses] 🔑 Using service‑role supabaseAdmin")
 
     // Authentication check removed for Preview mode and MVP
 
@@ -26,7 +29,7 @@ export async function POST(request: Request) {
     }
 
     // 1️⃣ Check for existing response
-    const { data: existing, error: selectErr } = await supabase
+    const { data: existing, error: selectErr } = await supabaseAdmin
       .from("survey_responses")
       .select("response_id")
       .eq("business_id", body.business_id)
@@ -40,14 +43,14 @@ export async function POST(request: Request) {
     let result, dbError
     if (existing?.length) {
       console.log("[task-responses] 🔄 Found existing, updating...")
-      ;({ data: result, error: dbError } = await supabase
+      ;({ data: result, error: dbError } = await supabaseAdmin
         .from("survey_responses")
         .update({ value: body.response_value, updated_at: new Date().toISOString() })
         .eq("response_id", existing[0].response_id)
         .select())
     } else {
       console.log("[task-responses] ✏️ No existing, inserting new...")
-      ;({ data: result, error: dbError } = await supabase
+      ;({ data: result, error: dbError } = await supabaseAdmin
         .from("survey_responses")
         .insert({
           business_id: body.business_id,
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
 
     // Update the task status to "Completed"
     console.log("[task-responses] 🔄 Marking task Completed")
-    const { error: taskUpdateError } = await supabase
+    const { error: taskUpdateError } = await supabaseAdmin
       .from("tasks")
       .update({ task_status: "Completed" })
       .eq("task_id", body.task_id)
