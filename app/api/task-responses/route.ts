@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     }
 
     // 1️⃣ Check for existing response
+    console.log("[task-responses] 🔍 SELECT existing...")
     const { data: existing, error: selectErr } = await supabaseAdmin
       .from("survey_responses")
       .select("response_id")
@@ -40,28 +41,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: selectErr.message }, { status: 500 })
     }
 
+    // Create the base payload for upsert
+    const payload = {
+      business_id: body.business_id,
+      task_id: body.task_id,
+      value: body.response_value,
+      responses: { [body.response_type]: body.response_value }, // ensure JSONB not null
+      updated_at: new Date().toISOString(),
+    }
+    console.log("[task-responses] 🛠 Upsert payload:", payload)
+
     let result, dbError
     if (existing?.length) {
-      console.log("[task-responses] 🔄 Found existing, updating...")
+      console.log("[task-responses] 🔄 UPDATE existing...")
       ;({ data: result, error: dbError } = await supabaseAdmin
         .from("survey_responses")
-        .update({ value: body.response_value, updated_at: new Date().toISOString() })
+        .update(payload)
         .eq("response_id", existing[0].response_id)
         .select())
     } else {
-      console.log("[task-responses] ✏️ No existing, inserting new...")
-      ;({ data: result, error: dbError } = await supabaseAdmin
-        .from("survey_responses")
-        .insert({
-          business_id: body.business_id,
-          task_id: body.task_id,
-          value: body.response_value,
-          // user_id field omitted since we're not requiring authentication
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select())
+      console.log("[task-responses] ✏️ INSERT new...")
+      // Add created_at for new records
+      payload.created_at = new Date().toISOString()
+      ;({ data: result, error: dbError } = await supabaseAdmin.from("survey_responses").insert(payload).select())
     }
+
     if (dbError) {
       console.error("[task-responses] ❌ DB write error:", dbError)
       return NextResponse.json({ error: dbError.message }, { status: 500 })
