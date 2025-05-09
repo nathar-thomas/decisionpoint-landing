@@ -151,7 +151,7 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           <div className="flex items-center h-full">
             {responseValue ? (
               <div
-                className="text-gray-800 text-left text-xs overflow-hidden max-w-[90%]"
+                className="text-gray-800 text-left text-xs overflow-hidden max-w-[90%] flex items-center"
                 style={{
                   display: "-webkit-box",
                   WebkitLineClamp: 3,
@@ -161,16 +161,14 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
                 {responseValue}
               </div>
             ) : (
-              <div className="flex items-center h-full">
-                <span className="text-xs font-medium text-amber-600">Info Needed</span>
-              </div>
+              <span className="text-xs font-medium text-amber-600">Info Needed</span>
             )}
           </div>
 
           {/* 3️⃣ Right column: Edit/Add Info link */}
           <div className="flex justify-end">
             <span
-              className="text-blue-600 hover:underline cursor-pointer text-sm"
+              className="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer text-sm"
               onClick={() => {
                 setIsModalOpen(true)
                 console.log("[TaskItem] ▶️", task.task_id, responseValue ? "Edit link clicked" : "Add Info link clicked")
