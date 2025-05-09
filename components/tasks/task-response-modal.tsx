@@ -24,7 +24,7 @@ interface TaskResponseModalProps {
   }
   businessId: string
   initialValue?: string
-  onSuccess?: () => void
+  onSuccess?: (value: string) => void
 }
 
 export function TaskResponseModal({
@@ -79,6 +79,7 @@ export function TaskResponseModal({
       }
 
       console.log("[TaskResponseModal] ✅ Save succeeded")
+      console.log("[TaskResponseModal] ▶️ Refreshing tasks state")
 
       toast({
         variant: "success",
@@ -87,7 +88,7 @@ export function TaskResponseModal({
       })
 
       if (onSuccess) {
-        onSuccess()
+        onSuccess(value)
       }
 
       onClose()

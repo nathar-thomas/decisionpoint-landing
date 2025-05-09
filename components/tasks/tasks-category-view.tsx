@@ -272,6 +272,9 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
   console.log("[TasksCategoryView] ▶️ Rendering tasks:", categories)
   console.log("[TasksCategoryView] ▶️ Link style applied for input tasks")
 
+  // Add this line near the beginning of the render function, just before the return statement
+  console.log("[TasksCategoryView] ▶️ Current tasks:", categories)
+
   return (
     <div className="space-y-4">
       <Accordion type="multiple" defaultValue={categories.map((c) => c.name)} className="space-y-4">

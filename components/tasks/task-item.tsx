@@ -28,18 +28,14 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
   const [isComplete, setIsComplete] = useState(task.isComplete)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [responseValue, setResponseValue] = useState<string | null>(null)
+  const [responseValue, setResponseValue] = useState<string | null>(task.response || null)
   const [isLoading, setIsLoading] = useState(false)
   const supabase = createClientComponentClient()
 
-  console.log("[TaskItem] Rendering task:", {
-    name: task.task_name,
-    id: task.task_id,
-    type: task.task_type,
-    businessId,
-  })
+  // Define the link classes for brand CTA styling
+  const linkClasses = "text-primary hover:underline cursor-pointer"
 
-  console.log("[TaskItem] ▶️", task.task_id, "complete?", isComplete, "response:", task.response)
+  console.log("[TaskItem] ▶️", task.task_id, "complete?", isComplete, "response:", responseValue || task.response)
 
   useEffect(() => {
     console.log(
@@ -97,9 +93,12 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
     setRefreshTrigger((prev) => prev + 1)
   }
 
-  const handleResponseSuccess = () => {
-    // Refresh the response data
-    fetchExistingResponse()
+  const handleResponseSuccess = (newValue: string) => {
+    console.log("[TaskItem] ▶️ Response saved successfully:", newValue)
+
+    // Update local state immediately
+    setResponseValue(newValue)
+    setIsComplete(true)
 
     // Trigger a refresh
     setRefreshTrigger((prev) => prev + 1)
@@ -134,24 +133,24 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           )}
 
           {/* Show response for input tasks */}
-          {task.task_type === "input" && task.response && (
-            <div className="flex items-center text-xs">
-              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500 flex-shrink-0" />
-              <span className="truncate max-w-[180px]" title={task.response}>
-                {task.response}
+          {task.task_type === "input" && responseValue && (
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+              <span className="text-gray-800 text-xs truncate max-w-[180px]" title={responseValue}>
+                {responseValue}
               </span>
             </div>
           )}
 
-          {/* Show "Add Info" prompt for input tasks without response */}
-          {task.task_type === "input" && !task.response && (
+          {/* Show "Info Needed" prompt for input tasks without response */}
+          {task.task_type === "input" && !responseValue && (
             <div className="flex items-center">
               <span className="text-xs font-medium text-amber-600">Info Needed</span>
             </div>
           )}
         </div>
 
-        {/* Upload button or Edit button on the right */}
+        {/* Upload button or Edit/Add Info link on the right */}
         <div className="flex-shrink-0 justify-self-end">
           {task.task_type === "document-upload" ? (
             <UploadButton
@@ -161,30 +160,26 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
               alwaysEnabled={true}
             />
           ) : task.task_type === "input" && task.input_config ? (
-            task.response ? (
-              <a
-                href="#"
-                className="text-primary hover:underline text-sm"
-                onClick={(e) => {
-                  e.preventDefault()
+            responseValue ? (
+              <span
+                className={linkClasses}
+                onClick={() => {
                   setIsModalOpen(true)
                   console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
                 }}
               >
                 Edit
-              </a>
+              </span>
             ) : (
-              <a
-                href="#"
-                className="text-primary hover:underline text-sm"
-                onClick={(e) => {
-                  e.preventDefault()
+              <span
+                className={linkClasses}
+                onClick={() => {
                   setIsModalOpen(true)
                   console.log("[TaskItem] ▶️", task.task_id, "Add Info link clicked")
                 }}
               >
                 Add Info
-              </a>
+              </span>
             )
           ) : null}
         </div>
