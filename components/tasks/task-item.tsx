@@ -113,7 +113,7 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           </div>
 
           {/* 2️⃣ Middle column: status */}
-          <div className="text-gray-800 text-left">
+          <div className="text-gray-800 text-left flex items-center h-full">
             {isComplete ? (
               <TaskUploads
                 taskId={task.task_id}
@@ -148,31 +148,35 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           </div>
 
           {/* 2️⃣ Middle column: response text or status */}
-          {responseValue ? (
-            <div
-              className="text-gray-800 text-left text-xs overflow-hidden"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-              }}
-            >
-              {responseValue}
-            </div>
-          ) : (
-            <div className="text-gray-500 text-xs font-medium">Info Needed</div>
-          )}
+          <div className="flex items-center h-full">
+            {responseValue ? (
+              <div
+                className="text-gray-800 text-left text-xs overflow-hidden max-w-[90%]"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {responseValue}
+              </div>
+            ) : (
+              <span className="text-xs font-medium text-amber-600">Info Needed</span>
+            )}
+          </div>
 
           {/* 3️⃣ Right column: Edit/Add Info link */}
-          <span
-            className="text-blue-600 hover:underline cursor-pointer text-sm justify-self-end"
-            onClick={() => {
-              setIsModalOpen(true)
-              console.log("[TaskItem] ▶️", task.task_id, responseValue ? "Edit link clicked" : "Add Info link clicked")
-            }}
-          >
-            {responseValue ? "Edit" : "Add Info"}
-          </span>
+          <div className="flex justify-end">
+            <span
+              className="text-blue-600 hover:underline cursor-pointer text-sm"
+              onClick={() => {
+                setIsModalOpen(true)
+                console.log("[TaskItem] ▶️", task.task_id, responseValue ? "Edit link clicked" : "Add Info link clicked")
+              }}
+            >
+              {responseValue ? "Edit" : "Add Info"}
+            </span>
+          </div>
         </div>
       )}
 
