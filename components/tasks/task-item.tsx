@@ -5,7 +5,6 @@ import { UploadButton } from "@/components/tasks/upload-button"
 import { TaskUploads } from "@/components/tasks/task-uploads"
 import { TaskResponseModal } from "./task-response-modal"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { CheckCircle2 } from "lucide-react"
 
 interface TaskItemProps {
   task: {
@@ -142,16 +141,15 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
             <div className="flex items-center justify-between py-2">
               {responseValue ? (
                 <>
-                  {/* Left side: icon + response text */}
-                  <div className="flex items-center space-x-2 mr-4">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-800 text-xs truncate max-w-[180px]" title={responseValue}>
+                  {/* Center: response text with 3-line wrapping */}
+                  <div className="flex-1 text-center mr-4">
+                    <span className="text-gray-800 text-xs line-clamp-3" title={responseValue}>
                       {responseValue}
                     </span>
                   </div>
                   {/* Right side: Edit link */}
                   <span
-                    className="text-blue-600 hover:underline cursor-pointer text-sm"
+                    className="text-blue-600 hover:underline cursor-pointer text-sm flex-shrink-0"
                     onClick={() => {
                       setIsModalOpen(true)
                       console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
