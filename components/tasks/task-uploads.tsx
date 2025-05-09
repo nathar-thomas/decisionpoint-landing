@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { FileText, ExternalLink, Loader2, AlertCircle } from "lucide-react"
+import { FileText, ExternalLink, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -162,7 +162,7 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0, showAsInli
     const file = files[0]
     return (
       <div className="flex items-center text-xs">
-        <FileText className="h-3 w-3 mr-1.5 text-blue-500 flex-shrink-0" />
+        <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500 flex-shrink-0" />
         <span className="truncate max-w-[180px]" title={file.filename}>
           {file.filename}
         </span>
@@ -170,23 +170,14 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0, showAsInli
         <span className="text-muted-foreground">{formatDate(file.created_at)}</span>
 
         {file.file_url && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-5 w-5 p-0 ml-2 flex-shrink-0"
-                  onClick={() => window.open(file.file_url!, "_blank")}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">
-                <p>View file</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <a
+            href={file.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-1.5 text-blue-500 hover:text-blue-700 flex items-center"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </a>
         )}
       </div>
     )

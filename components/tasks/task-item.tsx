@@ -51,8 +51,12 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
         {/* Center row with status or file info */}
         <div className="flex items-center justify-between">
           <div className="flex-grow">
-            {/* This will be replaced by TaskUploads component or status text */}
-            {!isComplete && <span className="text-xs font-medium text-amber-600">Needed</span>}
+            {/* Show "Needed" status when no file is uploaded */}
+            {!isComplete && (
+              <div className="flex items-center">
+                <span className="text-xs font-medium text-amber-600">Needed</span>
+              </div>
+            )}
 
             {/* Show uploaded files for this task with refresh trigger */}
             <TaskUploads
