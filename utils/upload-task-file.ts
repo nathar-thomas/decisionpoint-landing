@@ -64,9 +64,9 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
 
     console.log("[UploadTaskFile] Uploading to path:", filePath)
 
-    // Upload to Storage - using the task-documents bucket
+    // Upload to Storage - using the "documents" bucket instead of "task-documents"
     const { data: fileData, error: uploadError } = await supabase.storage
-      .from("task-documents")
+      .from("documents") // <-- Change this to match your actual bucket name
       .upload(filePath, file, {
         cacheControl: "3600",
         upsert: false,
@@ -80,7 +80,7 @@ export async function uploadTaskFile(file: File, taskId: string, businessId: str
     console.log("[UploadTaskFile] File uploaded successfully:", fileData)
 
     // Get the public URL for the uploaded file
-    const { data: publicUrlData } = supabase.storage.from("task-documents").getPublicUrl(filePath)
+    const { data: publicUrlData } = supabase.storage.from("documents").getPublicUrl(filePath)
     const fileUrl = publicUrlData?.publicUrl || null
 
     console.log("[UploadTaskFile] Generated public URL:", fileUrl)
