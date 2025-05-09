@@ -103,86 +103,78 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
   return (
     <div className="p-3 border rounded-lg bg-white">
-      <div className="grid grid-cols-[1fr,auto] gap-4 items-center">
-        {/* Task title on the left */}
-        <div className="flex-shrink-0">
-          <h4 className="font-medium">{task.task_name}</h4>
-          {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
-        </div>
+      {/* Document upload tasks */}
+      {task.task_type === "document-upload" && (
+        <div className="grid grid-cols-[2fr,5fr,auto] items-center gap-4 py-2 px-4">
+          {/* 1️⃣ Left column: title/description */}
+          <div className="text-gray-900">
+            <h4 className="font-medium">{task.task_name}</h4>
+            {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
+          </div>
 
-        {/* Right side: Status/files/response and action button */}
-        <div className="flex items-center justify-end space-x-4">
-          {/* Document upload tasks */}
-          {task.task_type === "document-upload" && (
-            <>
-              <div className="flex items-center">
-                {isComplete ? (
-                  <TaskUploads
-                    taskId={task.task_id}
-                    businessId={businessId}
-                    refreshTrigger={refreshTrigger}
-                    showAsInline={true}
-                  />
-                ) : (
-                  <span className="text-xs font-medium text-amber-600">Info Needed</span>
-                )}
-              </div>
-              <UploadButton
+          {/* 2️⃣ Middle column: status */}
+          <div className="text-gray-800 text-left">
+            {isComplete ? (
+              <TaskUploads
                 taskId={task.task_id}
                 businessId={businessId}
-                onSuccess={handleUploadSuccess}
-                alwaysEnabled={true}
+                refreshTrigger={refreshTrigger}
+                showAsInline={true}
               />
-            </>
+            ) : (
+              <span className="text-xs font-medium text-amber-600">Info Needed</span>
+            )}
+          </div>
+
+          {/* 3️⃣ Right column: Upload button */}
+          <div className="justify-self-end">
+            <UploadButton
+              taskId={task.task_id}
+              businessId={businessId}
+              onSuccess={handleUploadSuccess}
+              alwaysEnabled={true}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Input tasks */}
+      {task.task_type === "input" && task.input_config && (
+        <div className="grid grid-cols-[2fr,5fr,auto] items-center gap-4 py-2 px-4">
+          {/* 1️⃣ Left column: title/description */}
+          <div className="text-gray-900">
+            <h4 className="font-medium">{task.task_name}</h4>
+            {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
+          </div>
+
+          {/* 2️⃣ Middle column: response text or status */}
+          {responseValue ? (
+            <div
+              className="text-gray-800 text-left text-xs overflow-hidden"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {responseValue}
+            </div>
+          ) : (
+            <div className="text-gray-500 text-xs font-medium">Info Needed</div>
           )}
 
-          {/* Input tasks */}
-          {task.task_type === "input" && task.input_config && (
-            <div className="flex items-center justify-between py-2">
-              {responseValue ? (
-                <>
-                  {/* Left: response text */}
-                  <div
-                    className="flex-1 max-w-[60%] text-left text-gray-800 text-xs overflow-hidden"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                    }}
-                  >
-                    {responseValue}
-                  </div>
-                  {/* Right: Edit link */}
-                  <span
-                    className="text-blue-600 hover:underline cursor-pointer text-sm ml-4"
-                    onClick={() => {
-                      setIsModalOpen(true)
-                      console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
-                    }}
-                  >
-                    Edit
-                  </span>
-                </>
-              ) : (
-                <>
-                  {/* Left side: Info Needed text */}
-                  <span className="text-xs font-medium text-amber-600">Info Needed</span>
-                  {/* Right side: Add Info link */}
-                  <span
-                    className="text-blue-600 hover:underline cursor-pointer text-sm ml-4"
-                    onClick={() => {
-                      setIsModalOpen(true)
-                      console.log("[TaskItem] ▶️", task.task_id, "Add Info link clicked")
-                    }}
-                  >
-                    Add Info
-                  </span>
-                </>
-              )}
-            </div>
-          )}
+          {/* 3️⃣ Right column: Edit/Add Info link */}
+          <span
+            className="text-blue-600 hover:underline cursor-pointer text-sm justify-self-end"
+            onClick={() => {
+              setIsModalOpen(true)
+              console.log("[TaskItem] ▶️", task.task_id, responseValue ? "Edit link clicked" : "Add Info link clicked")
+            }}
+          >
+            {responseValue ? "Edit" : "Add Info"}
+          </span>
         </div>
-      </div>
+      )}
 
       {/* Response Modal */}
       {task.task_type === "input" && task.input_config && (
