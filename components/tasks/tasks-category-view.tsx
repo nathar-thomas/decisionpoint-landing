@@ -259,20 +259,20 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
           >
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center justify-between w-full pr-4">
-                <div className="flex items-center gap-2">
+                <h3 className="text-lg font-medium text-left">{category.name}</h3>
+                <div className="flex items-center gap-1.5">
                   {category.isComplete ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
                   )}
-                  <h3 className="text-lg font-medium text-left">{category.name}</h3>
-                </div>
-                <div
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    category.isComplete ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-                  }`}
-                >
-                  {category.isComplete ? "Complete" : "Incomplete"}
+                  <div
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      category.isComplete ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    {category.isComplete ? "Complete" : "Incomplete"}
+                  </div>
                 </div>
               </div>
             </AccordionTrigger>

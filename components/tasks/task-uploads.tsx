@@ -154,7 +154,7 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
   }
 
   return (
-    <div className="mt-2 flex flex-wrap gap-2">
+    <div className="mt-3 flex flex-wrap gap-2">
       {files.map((file) => (
         <div
           key={file.id}

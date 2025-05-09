@@ -43,38 +43,35 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
   return (
     <div className="p-3 border rounded-lg bg-white">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            {isComplete ? (
-              <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-            ) : (
-              <Info className="h-4 w-4 text-amber-500 flex-shrink-0" />
-            )}
-            <h4 className="font-medium">{task.task_name}</h4>
-            <span className={cn("text-xs font-medium", isComplete ? "text-green-600" : "text-amber-600")}>
-              {isComplete ? "Complete" : "Needed"}
-            </span>
-          </div>
-
+      <div className="flex items-center justify-between gap-4">
+        {/* Task title and description */}
+        <div className="space-y-1 flex-grow">
+          <h4 className="font-medium">{task.task_name}</h4>
           {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
-
-          {/* Show uploaded files for this task with refresh trigger */}
-          <TaskUploads taskId={task.task_id} businessId={businessId} refreshTrigger={refreshTrigger} />
         </div>
 
-        {/* Only show upload button for document-upload tasks */}
-        {task.task_type === "document-upload" && (
-          <div className="flex-shrink-0 mt-1 sm:mt-0">
-            <UploadButton
-              taskId={task.task_id}
-              businessId={businessId}
-              disabled={isComplete}
-              onSuccess={handleUploadSuccess}
-            />
-          </div>
-        )}
+        {/* Status indicator - vertically centered and left-aligned */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {isComplete ? (
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          ) : (
+            <Info className="h-4 w-4 text-amber-500" />
+          )}
+          <span className={cn("text-xs font-medium", isComplete ? "text-green-600" : "text-amber-600")}>
+            {isComplete ? "Complete" : "Needed"}
+          </span>
+        </div>
+
+        {/* Upload button or file metadata */}
+        <div className="flex-shrink-0">
+          {task.task_type === "document-upload" && !isComplete && (
+            <UploadButton taskId={task.task_id} businessId={businessId} onSuccess={handleUploadSuccess} />
+          )}
+        </div>
       </div>
+
+      {/* Show uploaded files for this task with refresh trigger */}
+      <TaskUploads taskId={task.task_id} businessId={businessId} refreshTrigger={refreshTrigger} />
     </div>
   )
 }
