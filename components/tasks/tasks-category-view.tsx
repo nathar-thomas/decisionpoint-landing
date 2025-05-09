@@ -79,146 +79,154 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
     ]
   }
 
-  useEffect(() => {
-    async function fetchTasksAndFiles() {
-      try {
-        setIsLoading(true)
+  // Update the fetchTasksAndFiles function to include logging
+  async function fetchTasksAndFiles() {
+    try {
+      setIsLoading(true)
+      console.log("[fetchTasksAndFiles] ▶️ Start:", businessId)
 
-        // 1. Add UUID validation using the provided regex
-        const isValidUUID = (uuid: string) =>
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
+      // 1. Add UUID validation using the provided regex
+      const isValidUUID = (uuid: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
 
-        // 2. Determine the businessId
-        const validatedBusinessId = isValidUUID(businessId) ? businessId : "37add0e6-16d4-4607-b057-7e7a1ede55f1" // fallback UUID
+      // 2. Determine the businessId
+      const validatedBusinessId = isValidUUID(businessId) ? businessId : "37add0e6-16d4-4607-b057-7e7a1ede55f1" // fallback UUID
 
-        // 3. Log each step for debugging
-        console.log("[fetchTasksAndFiles] Raw businessId param:", businessId)
-        console.log("[fetchTasksAndFiles] UUID is valid:", isValidUUID(businessId))
-        console.log("[fetchTasksAndFiles] Using businessId for fetch:", validatedBusinessId)
+      // 3. Log each step for debugging
+      console.log("[fetchTasksAndFiles] Raw businessId param:", businessId)
+      console.log("[fetchTasksAndFiles] UUID is valid:", isValidUUID(businessId))
+      console.log("[fetchTasksAndFiles] Using businessId for fetch:", validatedBusinessId)
 
-        // 4. Use validatedBusinessId in all Supabase queries
-        console.log("[fetchTasksAndFiles] Querying tasks table with seller_id:", validatedBusinessId)
-        const { data: tasks, error: tasksError } = await supabase
-          .from("tasks")
-          .select("*")
-          .eq("seller_id", validatedBusinessId)
-          .order("task_name")
+      // 4. Use validatedBusinessId in all Supabase queries
+      console.log("[fetchTasksAndFiles] Querying tasks table with seller_id:", validatedBusinessId)
+      const { data: tasks, error: tasksError } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("seller_id", validatedBusinessId)
+        .order("task_name")
 
-        console.log("[fetchTasksAndFiles] Supabase query result:", tasks)
-        console.log("[fetchTasksAndFiles] Supabase query error:", tasksError)
-
-        if (tasksError) {
-          console.error("[fetchTasksAndFiles] Error fetching tasks:", tasksError)
-          throw new Error(`Failed to fetch tasks: ${tasksError.message}`)
-        }
-
-        // Log detailed information about the tasks
-        console.log(`[fetchTasksAndFiles] Fetched ${tasks?.length || 0} tasks`)
-        if (tasks && tasks.length > 0) {
-          console.log("[fetchTasksAndFiles] Task types:", [...new Set(tasks.map((t) => t.task_type))])
-          console.log("[fetchTasksAndFiles] Task categories:", [
-            ...new Set(tasks.map((t) => t.category || "Uncategorized")),
-          ])
-
-          // Log the first few tasks for debugging
-          console.log("[fetchTasksAndFiles] Sample tasks (first 3):", tasks.slice(0, 3))
-        } else {
-          console.log("[fetchTasksAndFiles] No tasks found for this business")
-        }
-
-        // Add diagnostic logging to confirm proper UUIDs
-        console.log("[fetchTasksAndFiles] Final task list:", tasks)
-
-        // Fetch uploaded files for this business using the validated ID
-        console.log("[fetchTasksAndFiles] Querying uploaded_files with business_id:", validatedBusinessId)
-        const { data: files, error: filesError } = await supabase
-          .from("uploaded_files")
-          .select("id, task_id, status")
-          .eq("business_id", validatedBusinessId)
-
-        if (filesError) {
-          console.error("[fetchTasksAndFiles] Error fetching files:", filesError)
-          throw new Error(`Failed to fetch files: ${filesError.message}`)
-        }
-
-        console.log(`[fetchTasksAndFiles] Fetched ${files?.length || 0} uploaded files`)
-
-        // Process tasks and files - ensure we pass all tasks regardless of type
-        processTasksAndFiles(tasks || [], files || [])
-      } catch (err) {
-        console.error("[fetchTasksAndFiles] Error:", err)
-        setError(err instanceof Error ? err.message : "An unknown error occurred")
-      } finally {
-        setIsLoading(false)
+      if (tasksError) {
+        console.error("[fetchTasksAndFiles] ❌ tasks error:", tasksError)
+        throw new Error(`Failed to fetch tasks: ${tasksError.message}`)
       }
+
+      console.log("[fetchTasksAndFiles] ✅ tasks:", tasks)
+
+      // Fetch uploaded files for this business using the validated ID
+      console.log("[fetchTasksAndFiles] Querying uploaded_files with business_id:", validatedBusinessId)
+      const { data: files, error: filesError } = await supabase
+        .from("uploaded_files")
+        .select("id, task_id, status")
+        .eq("business_id", validatedBusinessId)
+
+      if (filesError) {
+        console.error("[fetchTasksAndFiles] ❌ files error:", filesError)
+        throw new Error(`Failed to fetch files: ${filesError.message}`)
+      }
+
+      console.log("[fetchTasksAndFiles] ✅ files:", files)
+
+      // Fetch survey responses
+      console.log("[fetchTasksAndFiles] Querying survey_responses with business_id:", validatedBusinessId)
+      const { data: responses, error: responsesError } = await supabase
+        .from("survey_responses")
+        .select("response_id, task_id, value")
+        .eq("business_id", validatedBusinessId)
+
+      if (responsesError) {
+        console.error("[fetchTasksAndFiles] ❌ responses error:", responsesError)
+        // Continue even if responses fetch fails
+      } else {
+        console.log("[fetchTasksAndFiles] ✅ responses:", responses)
+      }
+
+      // Process tasks, files, and responses
+      const mergedTasks = processTasksAndFiles(tasks || [], files || [], responses || [])
+      console.log("[fetchTasksAndFiles] 🔄 Final merged tasks:", mergedTasks)
+    } catch (err) {
+      console.error("[fetchTasksAndFiles] ❌ Error:", err)
+      setError(err instanceof Error ? err.message : "An unknown error occurred")
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    // Helper function to process tasks and files data
-    function processTasksAndFiles(tasks: Task[], files: UploadedFile[]) {
-      // Add debug log to show how many tasks are being processed
-      console.log(`[processTasksAndFiles] Processing ${tasks.length} tasks and ${files.length} files`)
+  // Helper function to process tasks and files data
+  function processTasksAndFiles(tasks: Task[], files: UploadedFile[], responses: any[] = []) {
+    // Add debug log to show how many tasks are being processed
+    console.log(
+      `[processTasksAndFiles] ▶️ Processing ${tasks.length} tasks, ${files.length} files, and ${responses.length} responses`,
+    )
 
-      // Group tasks by category
-      const tasksByCategory: Record<string, (Task & { isComplete: boolean })[]> = {}
+    // Group tasks by category
+    const tasksByCategory: Record<string, (Task & { isComplete: boolean })[]> = {}
 
-      // First, ensure all tasks are included regardless of file status
-      tasks.forEach((task: Task) => {
-        console.log("[TaskItem] Rendering task:", {
-          name: task.task_name,
-          id: task.task_id,
-          type: typeof task.task_id,
-        })
-
-        // Determine if task is complete (has at least one processed file)
-        const isComplete = files.some((file) => file.task_id === task.task_id && file.status === "processed")
-        console.log(`[Status] Task ${task.task_id} (${task.task_name}) isComplete:`, isComplete)
-
-        // Use "Uncategorized" for null categories
-        const category = task.category || "Uncategorized"
-        console.log(`[Task] Assigning task "${task.task_name}" to category "${category}"`)
-
-        if (!tasksByCategory[category]) {
-          tasksByCategory[category] = []
-        }
-
-        // Include all tasks regardless of type or file status
-        tasksByCategory[category].push({
-          ...task,
-          isComplete,
-        })
+    // First, ensure all tasks are included regardless of file status
+    tasks.forEach((task: Task) => {
+      console.log("[processTasksAndFiles] Processing task:", {
+        name: task.task_name,
+        id: task.task_id,
+        type: task.task_type,
       })
 
-      console.log("[groupTasksByCategory] Grouped tasks:", tasksByCategory)
+      // Determine if task is complete (has at least one processed file or response)
+      const hasProcessedFile = files.some((file) => file.task_id === task.task_id && file.status === "processed")
+      const hasResponse = responses.some((response) => response.task_id === task.task_id)
+      const isComplete = hasProcessedFile || hasResponse
 
-      // Log the count of tasks in each category
-      Object.entries(tasksByCategory).forEach(([category, categoryTasks]) => {
-        console.log(`[Category] "${category}" has ${categoryTasks.length} tasks`)
+      console.log(`[processTasksAndFiles] Task ${task.task_id} (${task.task_name}) isComplete:`, isComplete, {
+        hasProcessedFile,
+        hasResponse,
       })
 
-      // Convert to array and sort categories
-      const categoriesArray = Object.entries(tasksByCategory).map(([name, tasks]) => ({
-        name,
-        tasks,
-        isComplete: tasks.every((task) => task.isComplete),
-      }))
+      // Use "Uncategorized" for null categories
+      const category = task.category || "Uncategorized"
+      console.log(`[processTasksAndFiles] Assigning task "${task.task_name}" to category "${category}"`)
 
-      // Sort categories alphabetically, but keep "Uncategorized" at the end
-      categoriesArray.sort((a, b) => {
-        if (a.name === "Uncategorized") return 1
-        if (b.name === "Uncategorized") return -1
-        return a.name.localeCompare(b.name)
+      if (!tasksByCategory[category]) {
+        tasksByCategory[category] = []
+      }
+
+      // Include all tasks regardless of type or file status
+      tasksByCategory[category].push({
+        ...task,
+        isComplete,
       })
+    })
 
-      console.log(`[Render] Total categories: ${categoriesArray.length}`)
-      categoriesArray.forEach((category) => {
-        console.log(
-          `[Render] Category "${category.name}": ${category.tasks.length} tasks, isComplete: ${category.isComplete}`,
-        )
-      })
+    console.log("[processTasksAndFiles] Grouped tasks:", tasksByCategory)
 
-      setCategories(categoriesArray)
-    }
+    // Log the count of tasks in each category
+    Object.entries(tasksByCategory).forEach(([category, categoryTasks]) => {
+      console.log(`[processTasksAndFiles] "${category}" has ${categoryTasks.length} tasks`)
+    })
 
+    // Convert to array and sort categories
+    const categoriesArray = Object.entries(tasksByCategory).map(([name, tasks]) => ({
+      name,
+      tasks,
+      isComplete: tasks.every((task) => task.isComplete),
+    }))
+
+    // Sort categories alphabetically, but keep "Uncategorized" at the end
+    categoriesArray.sort((a, b) => {
+      if (a.name === "Uncategorized") return 1
+      if (b.name === "Uncategorized") return -1
+      return a.name.localeCompare(b.name)
+    })
+
+    console.log(`[processTasksAndFiles] ✅ Final categories: ${categoriesArray.length}`)
+    categoriesArray.forEach((category) => {
+      console.log(
+        `[processTasksAndFiles] Category "${category.name}": ${category.tasks.length} tasks, isComplete: ${category.isComplete}`,
+      )
+    })
+
+    setCategories(categoriesArray)
+    return categoriesArray
+  }
+
+  useEffect(() => {
     fetchTasksAndFiles()
   }, [supabase, businessId])
 
