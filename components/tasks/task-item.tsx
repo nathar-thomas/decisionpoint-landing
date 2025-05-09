@@ -32,10 +32,8 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = createClientComponentClient()
 
-  // Define the link classes for brand CTA styling
-  const linkClasses = "text-primary hover:underline cursor-pointer"
-
   console.log("[TaskItem] ▶️", task.task_id, "complete?", isComplete, "response:", responseValue || task.response)
+  console.log("[TaskItem] ▶️ Aligned row:", task.task_id, "complete?", isComplete)
 
   useEffect(() => {
     console.log(
@@ -106,82 +104,80 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
   return (
     <div className="p-3 border rounded-lg bg-white">
-      <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center">
+      <div className="grid grid-cols-[1fr,auto] gap-4 items-center">
         {/* Task title on the left */}
         <div className="flex-shrink-0">
           <h4 className="font-medium">{task.task_name}</h4>
           {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
         </div>
 
-        {/* Status or file/response info in the center, left-aligned */}
-        <div className="flex items-center">
-          {/* Show "Info Needed" status when no file/response is provided */}
-          {!isComplete && task.task_type !== "input" && (
-            <div className="flex items-center">
-              <span className="text-xs font-medium text-amber-600">Info Needed</span>
-            </div>
-          )}
-
-          {/* Show uploaded files for document-upload tasks */}
+        {/* Right side: Status/files/response and action button */}
+        <div className="flex items-center justify-end space-x-4">
+          {/* Document upload tasks */}
           {task.task_type === "document-upload" && (
-            <TaskUploads
-              taskId={task.task_id}
-              businessId={businessId}
-              refreshTrigger={refreshTrigger}
-              showAsInline={true}
-            />
+            <>
+              <div className="flex items-center">
+                {isComplete ? (
+                  <TaskUploads
+                    taskId={task.task_id}
+                    businessId={businessId}
+                    refreshTrigger={refreshTrigger}
+                    showAsInline={true}
+                  />
+                ) : (
+                  <span className="text-xs font-medium text-amber-600">Info Needed</span>
+                )}
+              </div>
+              <UploadButton
+                taskId={task.task_id}
+                businessId={businessId}
+                onSuccess={handleUploadSuccess}
+                alwaysEnabled={true}
+              />
+            </>
           )}
 
-          {/* Show response for input tasks */}
-          {task.task_type === "input" && responseValue && (
-            <div className="flex items-center space-x-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-              <span className="text-gray-800 text-xs truncate max-w-[180px]" title={responseValue}>
-                {responseValue}
-              </span>
+          {/* Input tasks */}
+          {task.task_type === "input" && task.input_config && (
+            <div className="flex items-center justify-between py-2">
+              {responseValue ? (
+                <>
+                  {/* Left side: icon + response text */}
+                  <div className="flex items-center space-x-2 mr-4">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-800 text-xs truncate max-w-[180px]" title={responseValue}>
+                      {responseValue}
+                    </span>
+                  </div>
+                  {/* Right side: Edit link */}
+                  <span
+                    className="text-blue-600 hover:underline cursor-pointer text-sm"
+                    onClick={() => {
+                      setIsModalOpen(true)
+                      console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
+                    }}
+                  >
+                    Edit
+                  </span>
+                </>
+              ) : (
+                <>
+                  {/* Left side: Info Needed text */}
+                  <span className="text-xs font-medium text-amber-600 mr-4">Info Needed</span>
+                  {/* Right side: Add Info link */}
+                  <span
+                    className="text-blue-600 hover:underline cursor-pointer text-sm"
+                    onClick={() => {
+                      setIsModalOpen(true)
+                      console.log("[TaskItem] ▶️", task.task_id, "Add Info link clicked")
+                    }}
+                  >
+                    Add Info
+                  </span>
+                </>
+              )}
             </div>
           )}
-
-          {/* Show "Info Needed" prompt for input tasks without response */}
-          {task.task_type === "input" && !responseValue && (
-            <div className="flex items-center">
-              <span className="text-xs font-medium text-amber-600">Info Needed</span>
-            </div>
-          )}
-        </div>
-
-        {/* Upload button or Edit/Add Info link on the right */}
-        <div className="flex-shrink-0 justify-self-end">
-          {task.task_type === "document-upload" ? (
-            <UploadButton
-              taskId={task.task_id}
-              businessId={businessId}
-              onSuccess={handleUploadSuccess}
-              alwaysEnabled={true}
-            />
-          ) : task.task_type === "input" && task.input_config ? (
-            responseValue ? (
-              <span
-                className={linkClasses}
-                onClick={() => {
-                  setIsModalOpen(true)
-                  console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
-                }}
-              >
-                Edit
-              </span>
-            ) : (
-              <span
-                className={linkClasses}
-                onClick={() => {
-                  setIsModalOpen(true)
-                  console.log("[TaskItem] ▶️", task.task_id, "Add Info link clicked")
-                }}
-              >
-                Add Info
-              </span>
-            )
-          ) : null}
         </div>
       </div>
 
