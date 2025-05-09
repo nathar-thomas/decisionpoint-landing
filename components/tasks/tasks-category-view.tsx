@@ -141,7 +141,19 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
       }
 
       // Process tasks, files, and responses
-      const mergedTasks = processTasksAndFiles(tasks || [], files || [], responses || [])
+      console.log("[fetchTasksAndFiles] 🧩 Merging responses into tasks")
+      const tasksWithState = tasks.map((t) => {
+        const resp = responses?.find((r) => r.task_id === t.task_id)
+        return {
+          ...t,
+          response: resp?.value ?? null,
+          isComplete: files?.some((file) => file.task_id === t.task_id && file.status === "processed") || !!resp?.value,
+        }
+      })
+      console.log("[fetchTasksAndFiles] ✅ tasksWithState:", tasksWithState)
+
+      // Process tasks, files, and responses
+      const mergedTasks = processTasksAndFiles(tasksWithState || [], files || [], responses || [])
       console.log("[fetchTasksAndFiles] 🔄 Final merged tasks:", mergedTasks)
     } catch (err) {
       console.error("[fetchTasksAndFiles] ❌ Error:", err)
@@ -152,7 +164,11 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
   }
 
   // Helper function to process tasks and files data
-  function processTasksAndFiles(tasks: Task[], files: UploadedFile[], responses: any[] = []) {
+  function processTasksAndFiles(
+    tasks: (Task & { response?: string | null; isComplete?: boolean })[],
+    files: UploadedFile[],
+    responses: any[] = [],
+  ) {
     // Add debug log to show how many tasks are being processed
     console.log(
       `[processTasksAndFiles] ▶️ Processing ${tasks.length} tasks, ${files.length} files, and ${responses.length} responses`,
@@ -162,22 +178,19 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
     const tasksByCategory: Record<string, (Task & { isComplete: boolean })[]> = {}
 
     // First, ensure all tasks are included regardless of file status
-    tasks.forEach((task: Task) => {
+    tasks.forEach((task: Task & { response?: string | null; isComplete?: boolean }) => {
       console.log("[processTasksAndFiles] Processing task:", {
         name: task.task_name,
         id: task.task_id,
         type: task.task_type,
+        response: task.response,
+        isComplete: task.isComplete,
       })
 
-      // Determine if task is complete (has at least one processed file or response)
-      const hasProcessedFile = files.some((file) => file.task_id === task.task_id && file.status === "processed")
-      const hasResponse = responses.some((response) => response.task_id === task.task_id)
-      const isComplete = hasProcessedFile || hasResponse
+      // Use the pre-computed isComplete value
+      const isComplete = task.isComplete === true
 
-      console.log(`[processTasksAndFiles] Task ${task.task_id} (${task.task_name}) isComplete:`, isComplete, {
-        hasProcessedFile,
-        hasResponse,
-      })
+      console.log(`[processTasksAndFiles] Task ${task.task_id} (${task.task_name}) isComplete:`, isComplete)
 
       // Use "Uncategorized" for null categories
       const category = task.category || "Uncategorized"
@@ -255,6 +268,9 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
       </div>
     )
   }
+
+  console.log("[TasksCategoryView] ▶️ Rendering tasks:", categories)
+  console.log("[TasksCategoryView] ▶️ Link style applied for input tasks")
 
   return (
     <div className="space-y-4">

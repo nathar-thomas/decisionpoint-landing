@@ -3,11 +3,9 @@
 import { useEffect, useState } from "react"
 import { UploadButton } from "@/components/tasks/upload-button"
 import { TaskUploads } from "@/components/tasks/task-uploads"
-import { Button } from "@/components/ui/button"
-import { Pencil } from "lucide-react"
 import { TaskResponseModal } from "./task-response-modal"
-import { TaskResponse } from "./task-response"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { CheckCircle2 } from "lucide-react"
 
 interface TaskItemProps {
   task: {
@@ -16,6 +14,7 @@ interface TaskItemProps {
     description: string
     isComplete: boolean
     task_type: string
+    response?: string | null
     input_config?: {
       type: "text" | "textarea" | "dropdown"
       options?: string[]
@@ -40,11 +39,20 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
     businessId,
   })
 
-  useEffect(() => {
-    console.log(`[TaskItem] Mounted task: ${task.task_name}, id: ${task.task_id}, complete: ${isComplete}`)
+  console.log("[TaskItem] ▶️", task.task_id, "complete?", isComplete, "response:", task.response)
 
-    // Fetch existing response if this is an input task
-    if (task.task_type === "input") {
+  useEffect(() => {
+    console.log(
+      `[TaskItem] Mounted task: ${task.task_name}, id: ${task.task_id}, complete: ${isComplete}, response: ${task.response}`,
+    )
+
+    // Set response value from task.response if available
+    if (task.task_type === "input" && task.response) {
+      setResponseValue(task.response)
+      setIsComplete(true)
+    }
+    // Only fetch from API if we don't already have a response
+    else if (task.task_type === "input" && !task.response) {
       fetchExistingResponse()
     }
   }, [task, isComplete, refreshTrigger])
@@ -109,7 +117,7 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
         {/* Status or file/response info in the center, left-aligned */}
         <div className="flex items-center">
           {/* Show "Info Needed" status when no file/response is provided */}
-          {!isComplete && (
+          {!isComplete && task.task_type !== "input" && (
             <div className="flex items-center">
               <span className="text-xs font-medium text-amber-600">Info Needed</span>
             </div>
@@ -126,8 +134,20 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
           )}
 
           {/* Show response for input tasks */}
-          {task.task_type === "input" && responseValue && (
-            <TaskResponse value={responseValue} type={task.input_config?.type || "text"} />
+          {task.task_type === "input" && task.response && (
+            <div className="flex items-center text-xs">
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500 flex-shrink-0" />
+              <span className="truncate max-w-[180px]" title={task.response}>
+                {task.response}
+              </span>
+            </div>
+          )}
+
+          {/* Show "Add Info" prompt for input tasks without response */}
+          {task.task_type === "input" && !task.response && (
+            <div className="flex items-center">
+              <span className="text-xs font-medium text-amber-600">Info Needed</span>
+            </div>
           )}
         </div>
 
@@ -141,10 +161,31 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
               alwaysEnabled={true}
             />
           ) : task.task_type === "input" && task.input_config ? (
-            <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)} className="h-8">
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              {responseValue ? "Edit" : "Add Info"}
-            </Button>
+            task.response ? (
+              <a
+                href="#"
+                className="text-primary hover:underline text-sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsModalOpen(true)
+                  console.log("[TaskItem] ▶️", task.task_id, "Edit link clicked")
+                }}
+              >
+                Edit
+              </a>
+            ) : (
+              <a
+                href="#"
+                className="text-primary hover:underline text-sm"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsModalOpen(true)
+                  console.log("[TaskItem] ▶️", task.task_id, "Add Info link clicked")
+                }}
+              >
+                Add Info
+              </a>
+            )
           ) : null}
         </div>
       </div>
