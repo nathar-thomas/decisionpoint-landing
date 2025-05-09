@@ -39,10 +39,8 @@ export function TaskResponseModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
-  // Update the handleSubmit function to include logging
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[TaskResponseModal] ▶️ handleSubmit")
 
     if (!value.trim() && task.input_config.type !== "dropdown") {
       toast({
@@ -57,15 +55,15 @@ export function TaskResponseModal({
       setIsSubmitting(true)
 
       const payload = {
-        taskId: task.task_id,
-        businessId: businessId,
-        responseType: task.input_config.type,
-        value,
+        task_id: task.task_id,
+        business_id: businessId,
+        response_type: task.input_config.type, // This will be ignored by the API
+        response_value: value, // Using response_value as requested
       }
 
-      console.log("[TaskResponseModal] 📤 Sending:", payload)
+      console.log("[TaskResponseModal] ▶️ handleSubmit", payload)
 
-      const response = await fetch("/api/task-responses", {
+      const res = await fetch("/api/task-responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,14 +71,15 @@ export function TaskResponseModal({
         body: JSON.stringify(payload),
       })
 
-      const json = await response.json()
+      const json = await res.json()
       console.log("[TaskResponseModal] 📥 Response:", json)
 
-      if (!response.ok) {
-        throw new Error(json.error || "Failed to save response")
+      if (!res.ok) {
+        console.error("[TaskResponseModal] ❌ Error saving:", json.error)
+        throw new Error(json.error)
       }
 
-      console.log("[TaskResponseModal] ✅ Saved")
+      console.log("[TaskResponseModal] ✅ Save OK")
 
       toast({
         variant: "success",

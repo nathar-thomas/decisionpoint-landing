@@ -3,16 +3,13 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
-  console.log("[task-responses] ▶️ POST handler start")
+  console.log("[task-responses] ▶️ POST start")
 
   try {
-    // Parse the request body
     const body = await request.json()
     console.log("[task-responses] 📥 Payload:", body)
 
-    const { taskId, businessId, responseType, value } = body
-
-    console.log("[task-responses] 🔗 Initializing Supabase client")
+    // Initialize Supabase client
     const supabase = createRouteHandlerClient({ cookies })
 
     // Get the current user
@@ -27,83 +24,51 @@ export async function POST(request: Request) {
     }
 
     // Validate required fields
-    if (!taskId || !businessId || !responseType) {
-      console.error("[task-responses] ❌ Missing required fields:", { taskId, businessId, responseType })
+    if (!body.task_id || !body.business_id) {
+      console.error("[task-responses] ❌ Missing required fields:", {
+        task_id: body.task_id,
+        business_id: body.business_id,
+      })
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Check if a response already exists
-    const { data: existingResponse, error: fetchError } = await supabase
+    // Build the upsert payload with only existing columns
+    const payload = {
+      task_id: body.task_id,
+      business_id: body.business_id,
+      value: body.response_value,
+      updated_at: new Date().toISOString(),
+      user_id: user.id, // Include user_id for new records
+    }
+    console.log("[task-responses] 🛠 Upsert payload:", payload)
+
+    // Upsert into survey_responses
+    const { data, error } = await supabase
       .from("survey_responses")
-      .select("response_id")
-      .eq("task_id", taskId)
-      .eq("business_id", businessId)
-      .eq("user_id", user.id)
-      .limit(1)
+      .upsert(payload, { onConflict: ["business_id", "task_id"] })
+      .select()
 
-    if (fetchError) {
-      console.error("[task-responses] ❌ Error checking for existing response:", fetchError)
-      return NextResponse.json({ error: "Database error" }, { status: 500 })
+    if (error) {
+      console.error("[task-responses] ❌ Upsert error:", error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    let result
-
-    if (existingResponse && existingResponse.length > 0) {
-      // Update existing response
-      const { data, error: updateError } = await supabase
-        .from("survey_responses")
-        .update({
-          value,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("response_id", existingResponse[0].response_id)
-        .select()
-
-      if (updateError) {
-        console.error("[task-responses] ❌ Upsert error:", updateError)
-        return NextResponse.json({ error: "Failed to update response" }, { status: 500 })
-      }
-
-      console.log("[task-responses] ✅ Upsert success (update):", data)
-      result = data
-    } else {
-      // Insert new response
-      const { data, error: insertError } = await supabase
-        .from("survey_responses")
-        .insert({
-          task_id: taskId,
-          business_id: businessId,
-          user_id: user.id,
-          responses: { value }, // Store in JSONB field
-          value, // Also store in text field for compatibility
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-
-      if (insertError) {
-        console.error("[task-responses] ❌ Upsert error:", insertError)
-        return NextResponse.json({ error: "Failed to save response" }, { status: 500 })
-      }
-
-      console.log("[task-responses] ✅ Upsert success (insert):", data)
-      result = data
-    }
+    console.log("[task-responses] ✅ Upsert success:", data)
 
     // Update the task status to "Completed"
     const { error: taskUpdateError } = await supabase
       .from("tasks")
       .update({ task_status: "Completed" })
-      .eq("task_id", taskId)
+      .eq("task_id", body.task_id)
 
     if (taskUpdateError) {
       console.warn("[task-responses] ⚠️ Task status update error:", taskUpdateError)
       // Continue execution even if task update fails
     } else {
-      console.log("[task-responses] 🔄 Task status updated")
+      console.log("[task-responses] 🔄 Task marked Completed")
     }
 
-    return NextResponse.json({ success: true, data: result })
+    return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error("[task-responses] ❌ Unexpected error:", error)
     return NextResponse.json(
