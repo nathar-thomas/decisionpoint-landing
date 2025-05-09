@@ -260,7 +260,7 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center justify-between w-full pr-4">
                 <h3 className="text-lg font-medium text-left">{category.name}</h3>
-                <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full bg-amber-100/50">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100/50 text-amber-800">
                   {category.isComplete ? "Complete" : "Incomplete"}
                 </span>
               </div>

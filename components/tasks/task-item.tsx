@@ -41,19 +41,19 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
   return (
     <div className="p-3 border rounded-lg bg-white">
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center">
         {/* Task title on the left */}
-        <div className="flex-shrink-0 max-w-[30%]">
-          <h4 className="font-medium truncate">{task.task_name}</h4>
-          {task.description && <p className="text-xs text-muted-foreground truncate">{task.description}</p>}
+        <div className="flex-shrink-0">
+          <h4 className="font-medium">{task.task_name}</h4>
+          {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
         </div>
 
-        {/* Status or file info in the center */}
-        <div className="flex-grow flex justify-center">
-          {/* Show "Needed" status when no file is uploaded */}
+        {/* Status or file info in the center, left-aligned */}
+        <div className="flex items-center">
+          {/* Show "Info Needed" status when no file is uploaded */}
           {!isComplete && (
             <div className="flex items-center">
-              <span className="text-xs font-medium text-amber-600">Needed</span>
+              <span className="text-xs font-medium text-amber-600">Info Needed</span>
             </div>
           )}
 
@@ -68,7 +68,7 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
         {/* Upload button on the right */}
         {task.task_type === "document-upload" && (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 justify-self-end">
             <UploadButton
               taskId={task.task_id}
               businessId={businessId}
