@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     console.log("[task-responses] 📥 Payload:", body)
 
     // Initialize Supabase client
+    console.log("[task-responses] 🔗 Initializing Supabase client")
     const supabase = createRouteHandlerClient({ cookies })
 
     // Get the current user
@@ -32,30 +33,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Build the upsert payload with only existing columns
-    const payload = {
-      task_id: body.task_id,
-      business_id: body.business_id,
-      value: body.response_value,
-      updated_at: new Date().toISOString(),
-      user_id: user.id, // Include user_id for new records
-    }
-    console.log("[task-responses] 🛠 Upsert payload:", payload)
-
-    // Upsert into survey_responses
-    const { data, error } = await supabase
+    // 1️⃣ Check for existing response
+    const { data: existing, error: selectErr } = await supabase
       .from("survey_responses")
-      .upsert(payload, { onConflict: ["business_id", "task_id"] })
-      .select()
-
-    if (error) {
-      console.error("[task-responses] ❌ Upsert error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      .select("response_id")
+      .eq("business_id", body.business_id)
+      .eq("task_id", body.task_id)
+      .limit(1)
+    if (selectErr) {
+      console.error("[task-responses] ❌ Select error:", selectErr)
+      return NextResponse.json({ error: selectErr.message }, { status: 500 })
     }
 
-    console.log("[task-responses] ✅ Upsert success:", data)
+    let result, dbError
+    if (existing?.length) {
+      console.log("[task-responses] 🔄 Found existing, updating...")
+      ;({ data: result, error: dbError } = await supabase
+        .from("survey_responses")
+        .update({ value: body.response_value, updated_at: new Date().toISOString() })
+        .eq("response_id", existing[0].response_id)
+        .select())
+    } else {
+      console.log("[task-responses] ✏️ No existing, inserting new...")
+      ;({ data: result, error: dbError } = await supabase
+        .from("survey_responses")
+        .insert({
+          business_id: body.business_id,
+          task_id: body.task_id,
+          value: body.response_value,
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select())
+    }
+    if (dbError) {
+      console.error("[task-responses] ❌ DB write error:", dbError)
+      return NextResponse.json({ error: dbError.message }, { status: 500 })
+    }
+    console.log("[task-responses] ✅ DB write success:", result)
 
     // Update the task status to "Completed"
+    console.log("[task-responses] 🔄 Marking task Completed")
     const { error: taskUpdateError } = await supabase
       .from("tasks")
       .update({ task_status: "Completed" })
@@ -65,10 +84,10 @@ export async function POST(request: Request) {
       console.warn("[task-responses] ⚠️ Task status update error:", taskUpdateError)
       // Continue execution even if task update fails
     } else {
-      console.log("[task-responses] 🔄 Task marked Completed")
+      console.log("[task-responses] ✅ Task marked Completed")
     }
 
-    return NextResponse.json({ success: true, data })
+    return NextResponse.json({ success: true, data: result })
   } catch (error) {
     console.error("[task-responses] ❌ Unexpected error:", error)
     return NextResponse.json(

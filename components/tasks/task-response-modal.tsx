@@ -62,7 +62,6 @@ export function TaskResponseModal({
       }
 
       console.log("[TaskResponseModal] ▶️ handleSubmit", payload)
-
       const res = await fetch("/api/task-responses", {
         method: "POST",
         headers: {
@@ -75,11 +74,11 @@ export function TaskResponseModal({
       console.log("[TaskResponseModal] 📥 Response:", json)
 
       if (!res.ok) {
-        console.error("[TaskResponseModal] ❌ Error saving:", json.error)
+        console.error("[TaskResponseModal] ❌ Save error:", json.error)
         throw new Error(json.error)
       }
 
-      console.log("[TaskResponseModal] ✅ Save OK")
+      console.log("[TaskResponseModal] ✅ Save succeeded")
 
       toast({
         variant: "success",
