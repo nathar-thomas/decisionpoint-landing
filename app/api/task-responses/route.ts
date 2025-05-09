@@ -8,21 +8,13 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     console.log("[task-responses] 📥 Payload:", body)
+    console.log("[task-responses] ▶️ Skipping auth — payload:", body)
 
     // Initialize Supabase client
     console.log("[task-responses] 🔗 Initializing Supabase client")
     const supabase = createRouteHandlerClient({ cookies })
 
-    // Get the current user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      console.error("[task-responses] ❌ Auth error:", authError)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Authentication check removed for Preview mode and MVP
 
     // Validate required fields
     if (!body.task_id || !body.business_id) {
@@ -61,7 +53,7 @@ export async function POST(request: Request) {
           business_id: body.business_id,
           task_id: body.task_id,
           value: body.response_value,
-          user_id: user.id,
+          // user_id field omitted since we're not requiring authentication
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
