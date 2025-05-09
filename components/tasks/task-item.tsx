@@ -1,9 +1,10 @@
 "use client"
 
-import { CheckCircle, AlertCircle } from "lucide-react"
+import { CheckCircle, Info } from "lucide-react"
 import { useEffect, useState } from "react"
 import { UploadButton } from "@/components/tasks/upload-button"
 import { TaskUploads } from "@/components/tasks/task-uploads"
+import { cn } from "@/lib/utils"
 
 interface TaskItemProps {
   task: {
@@ -42,43 +43,37 @@ export function TaskItem({ task, businessId }: TaskItemProps) {
 
   return (
     <div className="p-3 border rounded-lg bg-white">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
         <div className="space-y-1">
-          <h4 className="font-medium">{task.task_name}</h4>
+          <div className="flex items-center gap-1.5">
+            {isComplete ? (
+              <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+            ) : (
+              <Info className="h-4 w-4 text-amber-500 flex-shrink-0" />
+            )}
+            <h4 className="font-medium">{task.task_name}</h4>
+            <span className={cn("text-xs font-medium", isComplete ? "text-green-600" : "text-amber-600")}>
+              {isComplete ? "Complete" : "Needed"}
+            </span>
+          </div>
+
           {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
 
           {/* Show uploaded files for this task with refresh trigger */}
           <TaskUploads taskId={task.task_id} businessId={businessId} refreshTrigger={refreshTrigger} />
         </div>
-        <div className="flex items-center gap-2">
-          <div
-            className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              isComplete ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"
-            }`}
-          >
-            {isComplete ? (
-              <>
-                <CheckCircle className="h-3 w-3 mr-1" />
-                <span>Complete</span>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-3 w-3 mr-1" />
-                <span>Info Needed</span>
-              </>
-            )}
-          </div>
 
-          {/* Only show upload button for document-upload tasks */}
-          {task.task_type === "document-upload" && (
+        {/* Only show upload button for document-upload tasks */}
+        {task.task_type === "document-upload" && (
+          <div className="flex-shrink-0 mt-1 sm:mt-0">
             <UploadButton
               taskId={task.task_id}
               businessId={businessId}
               disabled={isComplete}
               onSuccess={handleUploadSuccess}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

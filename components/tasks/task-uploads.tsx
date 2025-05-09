@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { FileText, ExternalLink, Loader2, AlertCircle } from "lucide-react"
+import { FileText, ExternalLink, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -32,7 +32,7 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
     (filePath: string | null): string | null => {
       if (!filePath) return null
       try {
-        const { data } = supabase.storage.from("documents").getPublicUrl(filePath)
+        const { data } = supabase.storage.from("task-documents").getPublicUrl(filePath)
         return data?.publicUrl || null
       } catch (err) {
         console.error("[TaskUploads] Error generating URL:", err)
@@ -41,6 +41,12 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
     },
     [supabase],
   )
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+  }
 
   // Fetch files with proper cleanup, delay and retry logic
   useEffect(() => {
@@ -127,8 +133,8 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
 
   if (isLoading) {
     return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        <Loader2 className="h-3 w-3 animate-spin mr-2" />
+      <div className="flex items-center text-xs text-muted-foreground mt-1.5">
+        <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
         Loading files...
       </div>
     )
@@ -136,8 +142,8 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
 
   if (fetchError) {
     return (
-      <div className="flex items-center text-sm text-red-500">
-        <AlertCircle className="h-3 w-3 mr-2" />
+      <div className="flex items-center text-xs text-red-500 mt-1.5">
+        <AlertCircle className="h-3 w-3 mr-1.5" />
         Error loading files
       </div>
     )
@@ -148,50 +154,56 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
   }
 
   return (
-    <div className="mt-3">
-      <h5 className="text-xs font-medium mb-2">Uploaded Files</h5>
-      <div className="space-y-2">
-        {files.map((file) => (
-          <div key={file.id} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-xs">
-            <div className="flex items-center">
-              <FileText className="h-3 w-3 mr-2 text-blue-500" />
-              <span className="truncate max-w-[150px]">{file.filename}</span>
-            </div>
+    <div className="mt-2 flex flex-wrap gap-2">
+      {files.map((file) => (
+        <div
+          key={file.id}
+          className="flex items-center text-xs bg-muted/40 hover:bg-muted/60 transition-colors rounded-md px-2 py-1 max-w-full"
+        >
+          {file.status === "processed" ? (
+            <CheckCircle className="h-3 w-3 mr-1.5 text-green-500 flex-shrink-0" />
+          ) : (
+            <FileText className="h-3 w-3 mr-1.5 text-blue-500 flex-shrink-0" />
+          )}
 
-            <TooltipProvider>
-              {file.file_url ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0"
-                      onClick={() => window.open(file.file_url!, "_blank")}
-                      title="View file"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>View file</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="h-6 w-6 flex items-center justify-center">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Processing file...</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </TooltipProvider>
-          </div>
-        ))}
-      </div>
+          <span className="truncate max-w-[120px]" title={file.filename}>
+            {file.filename}
+          </span>
+
+          <span className="mx-1.5 text-muted-foreground text-[10px]">{formatDate(file.created_at)}</span>
+
+          <TooltipProvider>
+            {file.file_url ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-4 w-4 p-0 ml-auto flex-shrink-0"
+                    onClick={() => window.open(file.file_url!, "_blank")}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  <p>View file</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="h-4 w-4 flex items-center justify-center ml-auto flex-shrink-0">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  <p>Processing file...</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </TooltipProvider>
+        </div>
+      ))}
     </div>
   )
 }

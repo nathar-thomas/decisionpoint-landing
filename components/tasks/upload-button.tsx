@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { uploadTaskFile } from "@/utils/upload-task-file"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 
 interface UploadButtonProps {
   taskId: string
@@ -88,18 +89,24 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
     <>
       <Button
         size="sm"
-        variant={uploadStatus === "success" ? "success" : uploadStatus === "error" ? "destructive" : "outline"}
+        variant="outline"
         onClick={() => document.getElementById(`file-upload-${taskId}`).click()}
         disabled={isUploading || disabled || uploadLockRef.current}
+        className={cn(
+          "h-8 transition-colors",
+          uploadStatus === "success" &&
+            "border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800",
+          uploadStatus === "error" && "border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800",
+        )}
       >
         {uploadStatus === "uploading" ? (
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
         ) : uploadStatus === "success" ? (
-          <CheckCircle className="h-4 w-4 mr-2" />
+          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
         ) : uploadStatus === "error" ? (
-          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
         ) : (
-          <Upload className="h-4 w-4 mr-2" />
+          <Upload className="h-3.5 w-3.5 mr-1.5" />
         )}
         {uploadStatus === "uploading"
           ? "Uploading..."
