@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { TaskItem } from "./task-item"
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 interface Task {
   task_id: string
@@ -260,20 +260,7 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center justify-between w-full pr-4">
                 <h3 className="text-lg font-medium text-left">{category.name}</h3>
-                <div className="flex items-center gap-1.5">
-                  {category.isComplete ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                  )}
-                  <div
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      category.isComplete ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {category.isComplete ? "Complete" : "Incomplete"}
-                  </div>
-                </div>
+                <span className="text-xs text-muted-foreground">{category.isComplete ? "Complete" : "Incomplete"}</span>
               </div>
             </AccordionTrigger>
             <AccordionContent>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { FileText, ExternalLink, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { FileText, ExternalLink, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -10,6 +10,7 @@ interface TaskUploadsProps {
   taskId: string
   businessId: string
   refreshTrigger?: number // Optional prop to trigger refresh
+  showAsInline?: boolean // New prop to control display style
 }
 
 interface UploadedFile {
@@ -21,7 +22,7 @@ interface UploadedFile {
   status: string
 }
 
-export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUploadsProps) {
+export function TaskUploads({ taskId, businessId, refreshTrigger = 0, showAsInline = false }: TaskUploadsProps) {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -133,7 +134,7 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
 
   if (isLoading) {
     return (
-      <div className="flex items-center text-xs text-muted-foreground mt-1.5">
+      <div className="flex items-center text-xs text-muted-foreground">
         <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
         Loading files...
       </div>
@@ -142,7 +143,7 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
 
   if (fetchError) {
     return (
-      <div className="flex items-center text-xs text-red-500 mt-1.5">
+      <div className="flex items-center text-xs text-red-500">
         <AlertCircle className="h-3 w-3 mr-1.5" />
         Error loading files
       </div>
@@ -153,18 +154,53 @@ export function TaskUploads({ taskId, businessId, refreshTrigger = 0 }: TaskUplo
     return null
   }
 
+  // Only show the most recent file if in inline mode
+  const filesToDisplay = showAsInline ? [files[0]] : files
+
+  if (showAsInline) {
+    // Inline display for the most recent file
+    const file = files[0]
+    return (
+      <div className="flex items-center text-xs">
+        <FileText className="h-3 w-3 mr-1.5 text-blue-500 flex-shrink-0" />
+        <span className="truncate max-w-[180px]" title={file.filename}>
+          {file.filename}
+        </span>
+        <span className="mx-1.5 text-muted-foreground">•</span>
+        <span className="text-muted-foreground">{formatDate(file.created_at)}</span>
+
+        {file.file_url && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-5 w-5 p-0 ml-2 flex-shrink-0"
+                  onClick={() => window.open(file.file_url!, "_blank")}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                <p>View file</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+    )
+  }
+
+  // Standard display for multiple files
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {files.map((file) => (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {filesToDisplay.map((file) => (
         <div
           key={file.id}
           className="flex items-center text-xs bg-muted/40 hover:bg-muted/60 transition-colors rounded-md px-2 py-1 max-w-full"
         >
-          {file.status === "processed" ? (
-            <CheckCircle className="h-3 w-3 mr-1.5 text-green-500 flex-shrink-0" />
-          ) : (
-            <FileText className="h-3 w-3 mr-1.5 text-blue-500 flex-shrink-0" />
-          )}
+          <FileText className="h-3 w-3 mr-1.5 text-blue-500 flex-shrink-0" />
 
           <span className="truncate max-w-[120px]" title={file.filename}>
             {file.filename}

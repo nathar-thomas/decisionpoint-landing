@@ -13,10 +13,17 @@ interface UploadButtonProps {
   taskId: string
   businessId: string
   disabled?: boolean
+  alwaysEnabled?: boolean
   onSuccess?: (fileId: string) => void
 }
 
-export function UploadButton({ taskId, businessId, disabled = false, onSuccess }: UploadButtonProps) {
+export function UploadButton({
+  taskId,
+  businessId,
+  disabled = false,
+  alwaysEnabled = false,
+  onSuccess,
+}: UploadButtonProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
   const uploadLockRef = useRef(false) // Use ref for upload locking to prevent race conditions
@@ -85,13 +92,16 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
     }
   }
 
+  // Determine if the button should be disabled
+  const isButtonDisabled = isUploading || (disabled && !alwaysEnabled) || uploadLockRef.current
+
   return (
     <>
       <Button
         size="sm"
         variant="outline"
         onClick={() => document.getElementById(`file-upload-${taskId}`).click()}
-        disabled={isUploading || disabled || uploadLockRef.current}
+        disabled={isButtonDisabled}
         className={cn(
           "h-8 transition-colors",
           uploadStatus === "success" &&
@@ -111,9 +121,9 @@ export function UploadButton({ taskId, businessId, disabled = false, onSuccess }
         {uploadStatus === "uploading"
           ? "Uploading..."
           : uploadStatus === "success"
-            ? "Uploaded"
+            ? "Upload New"
             : uploadStatus === "error"
-              ? "Failed"
+              ? "Try Again"
               : "Upload File"}
       </Button>
       <input
