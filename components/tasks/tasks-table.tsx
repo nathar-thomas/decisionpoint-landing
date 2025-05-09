@@ -67,17 +67,21 @@ export function TasksTable({ businessId }: { businessId: string }) {
           throw new Error(`Failed to fetch files: ${filesError.message}`)
         }
 
-        // Fetch survey responses
-        const { data: responses, error: responsesError } = await supabase
+        // Add this code to fetch responses
+        console.log("[fetchTasksAndFiles] ▶️ Fetching saved responses")
+        const { data: responses, error: respErr } = await supabase
           .from("survey_responses")
-          .select("response_id, task_id, value")
+          .select("task_id, value")
           .eq("business_id", businessId)
 
-        if (responsesError) {
-          console.error("Error fetching responses:", responsesError)
+        if (respErr) {
+          console.error("[fetchTasksAndFiles] ❌ responses error:", respErr)
+        } else {
+          console.log("[fetchTasksAndFiles] ✅ responses:", responses)
         }
 
         // Process tasks with files and responses
+        console.log("[fetchTasksAndFiles] 🧩 Merging responses into tasks")
         const processedTasks = tasks.map((task) => {
           const hasFile = files?.some((file) => file.task_id === task.task_id && file.status === "processed")
           const response = responses?.find((r) => r.task_id === task.task_id)
@@ -88,6 +92,7 @@ export function TasksTable({ businessId }: { businessId: string }) {
             response: response?.value || null,
           }
         })
+        console.log("[fetchTasksAndFiles] ✅ processedTasks:", processedTasks)
 
         // Group by category
         const tasksByCategory: Record<string, Task[]> = {}
@@ -208,70 +213,63 @@ export function TasksTable({ businessId }: { businessId: string }) {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="mt-4">
-                <table className="table-fixed w-full border-collapse">
-                  <colgroup>
-                    <col className="w-2/5" /> {/* 40% for title/description */}
-                    <col className="w-1/2" /> {/* 50% for status or response */}
-                    <col className="w-[10%]" /> {/* 10% for action link */}
-                  </colgroup>
-                  <tbody>
-                    {category.tasks.map((task) => (
-                      <tr key={task.task_id} className="border-b border-gray-100 last:border-0">
-                        {/* Cell 1: Title and Description */}
-                        <td className="py-3 pr-4 align-top">
-                          <h4 className="font-medium text-gray-900">{task.task_name}</h4>
-                          {task.description && <p className="text-xs text-muted-foreground mt-1">{task.description}</p>}
-                        </td>
+              <div className="mt-4 space-y-3">
+                {category.tasks.map((task) => (
+                  <div key={task.task_id} className="p-3 border rounded-lg bg-white">
+                    <div className="grid grid-cols-[2fr,5fr,auto] items-center gap-4">
+                      {/* Cell 1: Title and Description */}
+                      <div className="py-2">
+                        <h4 className="font-medium text-gray-900">{task.task_name}</h4>
+                        {task.description && <p className="text-xs text-muted-foreground mt-1">{task.description}</p>}
+                      </div>
 
-                        {/* Cell 2: Status or Response */}
-                        <td className="py-3 pr-4">
-                          {task.task_type === "document-upload" ? (
-                            // Document upload task status
-                            task.isComplete ? (
-                              <TaskUploads
-                                taskId={task.task_id}
-                                businessId={businessId}
-                                refreshTrigger={refreshTrigger}
-                                showAsInline={true}
-                              />
-                            ) : (
-                              <div className="flex items-center h-full">
-                                <span className="text-xs font-medium text-amber-600">Info Needed</span>
-                              </div>
-                            )
-                          ) : // Input task response or status
-                          task.response ? (
-                            <div className="text-gray-800 text-sm line-clamp-3 overflow-ellipsis">{task.response}</div>
+                      {/* Cell 2: Status or Response */}
+                      <div className="py-2">
+                        {task.task_type === "document-upload" ? (
+                          // Document upload task status
+                          task.isComplete ? (
+                            <TaskUploads
+                              taskId={task.task_id}
+                              businessId={businessId}
+                              refreshTrigger={refreshTrigger}
+                              showAsInline={true}
+                            />
                           ) : (
                             <div className="flex items-center h-full">
                               <span className="text-xs font-medium text-amber-600">Info Needed</span>
                             </div>
-                          )}
-                        </td>
+                          )
+                        ) : // Input task response or status
+                        task.response ? (
+                          <div className="text-gray-800 text-sm line-clamp-3 overflow-ellipsis">{task.response}</div>
+                        ) : (
+                          <div className="flex items-center h-full">
+                            <span className="text-xs font-medium text-amber-600">Info Needed</span>
+                          </div>
+                        )}
+                      </div>
 
-                        {/* Cell 3: Action Button/Link */}
-                        <td className="py-3 text-right">
-                          {task.task_type === "document-upload" ? (
-                            <UploadButton
-                              taskId={task.task_id}
-                              businessId={businessId}
-                              onSuccess={() => handleUploadSuccess(task.task_id)}
-                              alwaysEnabled={true}
-                            />
-                          ) : (
-                            <span
-                              className="text-blue-600 hover:underline cursor-pointer text-sm"
-                              onClick={() => openResponseModal(task)}
-                            >
-                              {task.response ? "Edit" : "Add Info"}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                      {/* Cell 3: Action Button/Link */}
+                      <div className="py-2 text-right">
+                        {task.task_type === "document-upload" ? (
+                          <UploadButton
+                            taskId={task.task_id}
+                            businessId={businessId}
+                            onSuccess={() => handleUploadSuccess(task.task_id)}
+                            alwaysEnabled={true}
+                          />
+                        ) : (
+                          <span
+                            className="text-blue-600 hover:underline cursor-pointer text-sm"
+                            onClick={() => openResponseModal(task)}
+                          >
+                            {task.response ? "Edit" : "Add Info"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </AccordionContent>
           </AccordionItem>
