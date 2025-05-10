@@ -127,15 +127,14 @@ export function TasksCategoryView({ businessId }: { businessId: string }) {
       console.log("[fetchTasksAndFiles] ✅ files:", files)
 
       // Fetch survey responses
-      console.log("[fetchTasksAndFiles] Querying survey_responses with business_id:", validatedBusinessId)
+      console.log("[fetchTasksAndFiles] ▶️ Loading saved responses")
       const { data: responses, error: responsesError } = await supabase
         .from("survey_responses")
-        .select("response_id, task_id, value")
+        .select("task_id, value")
         .eq("business_id", validatedBusinessId)
 
       if (responsesError) {
         console.error("[fetchTasksAndFiles] ❌ responses error:", responsesError)
-        // Continue even if responses fetch fails
       } else {
         console.log("[fetchTasksAndFiles] ✅ responses:", responses)
       }
