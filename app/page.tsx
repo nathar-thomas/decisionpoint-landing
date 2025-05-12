@@ -1,8 +1,6 @@
 import { Briefcase, CheckCircle, FileText, BarChart3 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-
+import { WaitlistForm } from "@/components/waitlist-form"
 import { BusinessProspectus } from "@/components/business-prospectus"
 
 export default function LandingPage() {
@@ -41,12 +39,7 @@ export default function LandingPage() {
                   closing day with less chaos.
                 </p>
               </div>
-              <div className="w-full max-w-sm space-y-2">
-                <form className="flex w-full max-w-sm items-center space-x-2">
-                  <Input type="email" placeholder="Enter your email" className="flex-1" />
-                  <Button type="submit">Join Waitlist</Button>
-                </form>
-              </div>
+              <WaitlistForm />
             </div>
           </div>
 
@@ -367,10 +360,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="mx-auto w-full max-w-sm space-y-2">
-              <form className="flex w-full max-w-sm items-center space-x-2">
-                <Input type="email" placeholder="Enter your email" className="flex-1" />
-                <Button type="submit">Join Waitlist</Button>
-              </form>
+              <WaitlistForm />
             </div>
           </div>
         </section>
