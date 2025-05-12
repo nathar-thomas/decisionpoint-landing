@@ -2,19 +2,21 @@
 
 import { createClient } from "@supabase/supabase-js"
 
-type UtmParams = {
-  utm_source?: string
-  utm_medium?: string
-  utm_campaign?: string
-  utm_content?: string
-  utm_term?: string
-}
-
 export async function subscribeToWaitlist(formData: FormData) {
   const email = formData.get("email") as string
 
+  // Log received data for debugging
+  console.log("Server action received:", {
+    email,
+    utm_source: formData.get("utm_source"),
+    utm_medium: formData.get("utm_medium"),
+    utm_campaign: formData.get("utm_campaign"),
+    utm_content: formData.get("utm_content"),
+    utm_term: formData.get("utm_term"),
+  })
+
   // Extract UTM parameters from form data
-  const utmParams: UtmParams = {
+  const utmParams = {
     utm_source: (formData.get("utm_source") as string) || null,
     utm_medium: (formData.get("utm_medium") as string) || null,
     utm_campaign: (formData.get("utm_campaign") as string) || null,

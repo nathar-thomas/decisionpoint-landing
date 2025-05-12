@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { subscribeToWaitlist } from "@/app/actions"
@@ -9,13 +9,13 @@ export function WaitlistForm() {
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [utmParams, setUtmParams] = useState({
-    utm_source: "",
-    utm_medium: "",
-    utm_campaign: "",
-    utm_content: "",
-    utm_term: "",
-  })
+
+  // Use refs to store UTM parameters
+  const utmSourceRef = useRef<HTMLInputElement>(null)
+  const utmMediumRef = useRef<HTMLInputElement>(null)
+  const utmCampaignRef = useRef<HTMLInputElement>(null)
+  const utmContentRef = useRef<HTMLInputElement>(null)
+  const utmTermRef = useRef<HTMLInputElement>(null)
 
   // Extract UTM parameters from URL on component mount
   useEffect(() => {
@@ -23,12 +23,20 @@ export function WaitlistForm() {
       const url = new URL(window.location.href)
       const params = url.searchParams
 
-      setUtmParams({
-        utm_source: params.get("utm_source") || "",
-        utm_medium: params.get("utm_medium") || "",
-        utm_campaign: params.get("utm_campaign") || "",
-        utm_content: params.get("utm_content") || "",
-        utm_term: params.get("utm_term") || "",
+      // Set UTM values directly on the DOM elements using refs
+      if (utmSourceRef.current) utmSourceRef.current.value = params.get("utm_source") || ""
+      if (utmMediumRef.current) utmMediumRef.current.value = params.get("utm_medium") || ""
+      if (utmCampaignRef.current) utmCampaignRef.current.value = params.get("utm_campaign") || ""
+      if (utmContentRef.current) utmContentRef.current.value = params.get("utm_content") || ""
+      if (utmTermRef.current) utmTermRef.current.value = params.get("utm_term") || ""
+
+      // Log for debugging
+      console.log("UTM params extracted:", {
+        source: params.get("utm_source"),
+        medium: params.get("utm_medium"),
+        campaign: params.get("utm_campaign"),
+        content: params.get("utm_content"),
+        term: params.get("utm_term"),
       })
     }
   }, [])
@@ -38,6 +46,9 @@ export function WaitlistForm() {
     setMessage(null)
 
     try {
+      // Log the form data for debugging
+      console.log("Form data being submitted:", Object.fromEntries(formData.entries()))
+
       const result = await subscribeToWaitlist(formData)
 
       if (result.success) {
@@ -47,6 +58,7 @@ export function WaitlistForm() {
         setMessage({ text: result.message, isError: true })
       }
     } catch (error) {
+      console.error("Form submission error:", error)
       setMessage({
         text: "An unexpected error occurred. Please try again.",
         isError: true,
@@ -70,12 +82,12 @@ export function WaitlistForm() {
           aria-label="Email address"
         />
 
-        {/* Hidden inputs for UTM parameters */}
-        <input type="hidden" name="utm_source" value={utmParams.utm_source} />
-        <input type="hidden" name="utm_medium" value={utmParams.utm_medium} />
-        <input type="hidden" name="utm_campaign" value={utmParams.utm_campaign} />
-        <input type="hidden" name="utm_content" value={utmParams.utm_content} />
-        <input type="hidden" name="utm_term" value={utmParams.utm_term} />
+        {/* Hidden inputs for UTM parameters using refs */}
+        <input type="hidden" name="utm_source" ref={utmSourceRef} />
+        <input type="hidden" name="utm_medium" ref={utmMediumRef} />
+        <input type="hidden" name="utm_campaign" ref={utmCampaignRef} />
+        <input type="hidden" name="utm_content" ref={utmContentRef} />
+        <input type="hidden" name="utm_term" ref={utmTermRef} />
 
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Joining..." : "Join Waitlist"}
