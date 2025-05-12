@@ -1,6 +1,11 @@
 "use server"
 
 import { createClient } from "@supabase/supabase-js"
+import { Resend } from "resend"
+import WelcomeEmail from "@/emails/welcome-email"
+
+// Initialize Resend with your API key
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 type SubscribeResponse = {
   success: boolean
@@ -59,6 +64,22 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
         success: false,
         message: "Something went wrong. Please try again later.",
       }
+    }
+
+    // For new subscribers, send a welcome email
+    try {
+      await resend.emails.send({
+        from: "DecisionPoint <hello@yourdomain.com>", // Change to your verified domain
+        to: email,
+        subject: "Welcome to the DecisionPoint Waitlist",
+        react: WelcomeEmail({ recipientEmail: email }),
+      })
+
+      console.log("Welcome email sent successfully to:", email)
+    } catch (emailError) {
+      // Log email error but don't fail the subscription
+      console.error("Error sending welcome email:", emailError)
+      // The user is still added to the waitlist even if the email fails
     }
 
     // Success case for new submission
