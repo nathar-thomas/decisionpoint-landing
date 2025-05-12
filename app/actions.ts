@@ -2,18 +2,14 @@
 
 import { createClient } from "@supabase/supabase-js"
 
-export async function subscribeToWaitlist(formData: FormData) {
-  const email = formData.get("email") as string
+type SubscribeResponse = {
+  success: boolean
+  isDuplicate?: boolean
+  message: string
+}
 
-  // Log received data for debugging
-  console.log("Server action received:", {
-    email,
-    utm_source: formData.get("utm_source"),
-    utm_medium: formData.get("utm_medium"),
-    utm_campaign: formData.get("utm_campaign"),
-    utm_content: formData.get("utm_content"),
-    utm_term: formData.get("utm_term"),
-  })
+export async function subscribeToWaitlist(formData: FormData): Promise<SubscribeResponse> {
+  const email = formData.get("email") as string
 
   // Extract UTM parameters from form data
   const utmParams = {
@@ -51,6 +47,7 @@ export async function subscribeToWaitlist(formData: FormData) {
       // PostgreSQL unique constraint violation
       return {
         success: true,
+        isDuplicate: true,
         message: "You're already on the waitlist! We'll be in touch soon.",
       }
     }
@@ -64,9 +61,10 @@ export async function subscribeToWaitlist(formData: FormData) {
       }
     }
 
-    // Success case
+    // Success case for new submission
     return {
       success: true,
+      isDuplicate: false,
       message: "Thanks for joining our waitlist! We'll keep you updated.",
     }
   } catch (err) {

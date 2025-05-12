@@ -7,7 +7,7 @@ import { subscribeToWaitlist } from "@/app/actions"
 
 export function WaitlistForm() {
   const [email, setEmail] = useState("")
-  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null)
+  const [message, setMessage] = useState<{ text: string; isError: boolean; isDuplicate?: boolean } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Use refs to store UTM parameters
@@ -29,15 +29,6 @@ export function WaitlistForm() {
       if (utmCampaignRef.current) utmCampaignRef.current.value = params.get("utm_campaign") || ""
       if (utmContentRef.current) utmContentRef.current.value = params.get("utm_content") || ""
       if (utmTermRef.current) utmTermRef.current.value = params.get("utm_term") || ""
-
-      // Log for debugging
-      console.log("UTM params extracted:", {
-        source: params.get("utm_source"),
-        medium: params.get("utm_medium"),
-        campaign: params.get("utm_campaign"),
-        content: params.get("utm_content"),
-        term: params.get("utm_term"),
-      })
     }
   }, [])
 
@@ -46,14 +37,19 @@ export function WaitlistForm() {
     setMessage(null)
 
     try {
-      // Log the form data for debugging
-      console.log("Form data being submitted:", Object.fromEntries(formData.entries()))
-
       const result = await subscribeToWaitlist(formData)
 
       if (result.success) {
-        setEmail("")
-        setMessage({ text: result.message, isError: false })
+        // Only clear the email field if it's a new submission (not a duplicate)
+        if (!result.isDuplicate) {
+          setEmail("")
+        }
+
+        setMessage({
+          text: result.message,
+          isError: false,
+          isDuplicate: result.isDuplicate,
+        })
       } else {
         setMessage({ text: result.message, isError: true })
       }
@@ -96,7 +92,13 @@ export function WaitlistForm() {
 
       {message && (
         <div
-          className={`text-sm p-2 rounded ${message.isError ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"}`}
+          className={`text-sm p-2 rounded ${
+            message.isError
+              ? "bg-red-50 text-red-600"
+              : message.isDuplicate
+                ? "bg-yellow-50 text-yellow-800"
+                : "bg-green-50 text-green-600"
+          }`}
         >
           {message.text}
         </div>
