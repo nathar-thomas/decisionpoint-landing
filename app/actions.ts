@@ -69,7 +69,7 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
     // For new subscribers, send a welcome email
     try {
       await resend.emails.send({
-        from: "DecisionPoint <hello@yourdomain.com>", // Change to your verified domain
+        from: "DecisionPoint <hello@decisionpnt.com>", // Updated with your specific email
         to: email,
         subject: "Welcome to the DecisionPoint Waitlist",
         react: WelcomeEmail({ recipientEmail: email }),
