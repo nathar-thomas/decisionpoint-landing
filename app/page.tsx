@@ -44,16 +44,16 @@ export default function LandingPage() {
           </div>
 
           {/* Screenshot with gradient overlay */}
-          <div className="relative mt-16 w-full max-w-5xl mx-auto">
-            <div className="rounded-lg overflow-hidden shadow-xl">
+          <div className="relative mt-16 w-full max-w-[85%] mx-auto">
+            <div className="rounded-[16px] overflow-hidden shadow-xl border border-[#D9D9D9]">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-zfNkZgVScccmOrokdiNz7gB2DQIWlb.png"
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVnb6698J2GotNvlC4urTpaLmBc5Ls.png"
                 alt="DecisionPoint dashboard showing business details, tasks, and document management"
                 className="w-full h-auto"
               />
+              {/* Gradient overlay that fades into the next section */}
+              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background rounded-b-[16px]"></div>
             </div>
-            {/* Gradient overlay that fades into the next section */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background"></div>
           </div>
         </section>
 
@@ -288,39 +288,11 @@ export default function LandingPage() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="item-3">
-                    <AccordionTrigger className="text-left">What types of documents can I upload?</AccordionTrigger>
-                    <AccordionContent className="text-left">
-                      PDFs, CSVs, Excel, JPGs, and PNGs — covering financials, legal, HR, and more. You can assign files
-                      to tasks and categories.
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-4">
-                    <AccordionTrigger className="text-left">
-                      Can I update or replace files after uploading?
-                    </AccordionTrigger>
-                    <AccordionContent className="text-left">
-                      Yes — you can upload new versions, delete files, or add more as needed. It's a flexible,
-                      broker-led system.
-                    </AccordionContent>
-                  </AccordionItem>
-
                   <AccordionItem value="item-5">
                     <AccordionTrigger className="text-left">How does the system analyze the business?</AccordionTrigger>
                     <AccordionContent className="text-left">
                       We extract key financial data from your uploaded documents (like P&Ls or bank statements) and
                       display it in a structured, editable table.
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-6">
-                    <AccordionTrigger className="text-left">
-                      What if the extracted data isn't accurate?
-                    </AccordionTrigger>
-                    <AccordionContent className="text-left">
-                      You can edit any values directly. Think of the system as a starting point — you're always in
-                      control of the final numbers.
                     </AccordionContent>
                   </AccordionItem>
 
