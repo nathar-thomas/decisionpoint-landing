@@ -17,14 +17,73 @@ type SubscribeResponse = {
   debug?: any
 }
 
-// Add a simple rate limiting mechanism before your main function:
+// Enhanced rate limiting configuration
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hour in milliseconds
-const MAX_SUBMISSIONS_PER_WINDOW = 5
+const MAX_SUBMISSIONS_PER_WINDOW = 3 // Reduced from 5 to 3 per hour
 
 // Track submissions in memory (for a production app, use Redis or similar)
 const submissions: Record<string, { count: number; timestamp: number }> = {}
 
-// Then modify your subscribeToWaitlist function:
+// Enhanced server-side email validation
+function isValidEmailServer(email: string): boolean {
+  // Basic format check
+  const basicEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!basicEmailRegex.test(email)) {
+    console.log("Invalid email rejected: Failed basic format check")
+    return false
+  }
+
+  // More comprehensive email validation
+  // This regex checks for proper email format with various validations
+  const strictEmailRegex =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  if (!strictEmailRegex.test(email)) {
+    console.log("Invalid email rejected: Failed strict format check")
+    return false
+  }
+
+  // Check for suspicious patterns
+  const suspiciousPatterns = [
+    /test/i,
+    /example/i,
+    /[0-9]{4,}/, // 4+ consecutive digits
+    /admin/i,
+    /user/i,
+    /temp/i,
+    /fake/i,
+    /disposable/i,
+    /noreply/i,
+    /no-reply/i,
+  ]
+
+  if (suspiciousPatterns.some((pattern) => pattern.test(email))) {
+    console.log("Invalid email rejected: Contains suspicious patterns")
+    return false
+  }
+
+  // Check for disposable email domains
+  const disposableDomains = [
+    "tempmail.com",
+    "temp-mail.org",
+    "throwawaymail.com",
+    "mailinator.com",
+    "yopmail.com",
+    "guerrillamail.com",
+    "sharklasers.com",
+    "10minutemail.com",
+    "trashmail.com",
+    "disposablemail.com",
+  ]
+
+  const domain = email.split("@")[1].toLowerCase()
+  if (disposableDomains.some((d) => domain.includes(d))) {
+    console.log("Invalid email rejected: Disposable email domain")
+    return false
+  }
+
+  return true
+}
+
 export async function subscribeToWaitlist(formData: FormData): Promise<SubscribeResponse> {
   const isDebugMode = process.env.NODE_ENV !== "production"
   const debugInfo: Record<string, any> = {}
@@ -35,6 +94,7 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
   const honeypot = formData.get("honeypot") as string
   if (honeypot) {
     // This is likely a bot - silently reject but show success message
+    console.log("Bot detected via honeypot")
     if (isDebugMode) console.log("[Server Action] Honeypot field filled - likely bot")
     return {
       success: true,
@@ -77,13 +137,14 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
         debugInfo.rateLimitReset = true
       }
     } else if (submissions[clientId].count >= MAX_SUBMISSIONS_PER_WINDOW) {
+      console.log(`Rate limit exceeded: ${submissions[clientId].count} submissions in the last hour`)
       if (isDebugMode) {
         console.log("[Server Action] Rate limit exceeded for client")
         debugInfo.rateLimitExceeded = true
       }
       return {
         success: false,
-        message: "Too many submissions. Please try again later.",
+        message: "Rate limit exceeded. Please try again later.",
         debug: isDebugMode ? debugInfo : undefined,
       }
     } else {
@@ -108,6 +169,16 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
     debugInfo.email = email
   }
 
+  // Server-side email validation
+  if (!isValidEmailServer(email)) {
+    console.log("Invalid email rejected on server:", email)
+    return {
+      success: false,
+      message: "Please enter a valid email address.",
+      debug: isDebugMode ? { ...debugInfo, invalidEmail: true } : undefined,
+    }
+  }
+
   // Extract UTM parameters from form data
   const utmParams = {
     utm_source: (formData.get("utm_source") as string) || null,
@@ -120,15 +191,6 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
   if (isDebugMode && Object.values(utmParams).some((v) => v)) {
     console.log("[Server Action] UTM params present:", utmParams)
     debugInfo.utmParams = utmParams
-  }
-
-  if (!email || !email.includes("@")) {
-    if (isDebugMode) console.log("[Server Action] Invalid email format")
-    return {
-      success: false,
-      message: "Please enter a valid email address.",
-      debug: isDebugMode ? { ...debugInfo, invalidEmail: true } : undefined,
-    }
   }
 
   try {
@@ -156,6 +218,8 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
       verified: false,
       verification_token: verificationToken,
       verification_sent_at: new Date().toISOString(),
+      client_id: clientId, // Store client ID for rate limiting tracking
+      submission_count: submissions[clientId].count, // Track submission count
     }
 
     // Check if email already exists
@@ -201,6 +265,8 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
           .update({
             verification_token: verificationToken,
             verification_sent_at: new Date().toISOString(),
+            client_id: clientId, // Update client ID
+            submission_count: submissions[clientId].count, // Update submission count
           })
           .eq("email", email.toLowerCase().trim())
 

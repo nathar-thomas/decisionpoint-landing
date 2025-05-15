@@ -1,26 +1,38 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { subscribeToWaitlist } from "@/app/actions"
 
+// Enhanced email validation
 const isValidEmail = (email: string): boolean => {
   // Basic regex for email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-  // Check basic format
-  if (!emailRegex.test(email)) return false
+  if (!emailRegex.test(email)) {
+    console.log("Email failed basic format validation")
+    return false
+  }
 
-  // Additional checks for common fake patterns
-  const domain = email.split("@")[1]
-
-  // Check for disposable email domains (add more as needed)
-  const disposableDomains = ["tempmail.com", "throwaway.com", "mailinator.com", "yopmail.com"]
-  if (disposableDomains.some((d) => domain.includes(d))) return false
+  // Check for common TLDs
+  const validTLDs = [".com", ".org", ".net", ".edu", ".gov", ".io", ".co", ".us", ".uk", ".ca", ".au"]
+  if (!validTLDs.some((tld) => email.toLowerCase().endsWith(tld))) {
+    console.log("Email has suspicious TLD")
+    return false
+  }
 
   // Check for suspicious patterns
-  if (email.includes("test") || email.includes("123")) return false
+  if (
+    email.includes("test") ||
+    email.includes("123") ||
+    email.includes("example") ||
+    email.includes("user") ||
+    /\d{4,}/.test(email) // Contains 4+ consecutive digits
+  ) {
+    console.log("Email contains suspicious patterns")
+    return false
+  }
 
   return true
 }
@@ -30,6 +42,38 @@ export function WaitlistForm() {
   const [message, setMessage] = useState<{ text: string; isError: boolean; isDuplicate?: boolean } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Debug status state
+  const [debugStatus, setDebugStatus] = useState({
+    honeypot: { status: "clear", emoji: "✅" },
+    emailValid: { status: "pending", emoji: "⏳" },
+    rateLimit: { status: "OK", emoji: "✅" },
+    lastUpdate: new Date().toLocaleTimeString(),
+  })
+
+  // Track if we're in development mode
+  const isDev = process.env.NODE_ENV === "development"
+
+  // Update email validation status when email changes
+  useEffect(() => {
+    if (email) {
+      const isValid = isValidEmail(email)
+      setDebugStatus((prev) => ({
+        ...prev,
+        emailValid: {
+          status: isValid ? "valid" : "invalid",
+          emoji: isValid ? "✅" : "❌",
+        },
+        lastUpdate: new Date().toLocaleTimeString(),
+      }))
+    } else {
+      setDebugStatus((prev) => ({
+        ...prev,
+        emailValid: { status: "pending", emoji: "⏳" },
+        lastUpdate: new Date().toLocaleTimeString(),
+      }))
+    }
+  }, [email])
+
   // Use refs to store UTM parameters
   const utmSourceRef = useRef<HTMLInputElement>(null)
   const utmMediumRef = useRef<HTMLInputElement>(null)
@@ -37,8 +81,11 @@ export function WaitlistForm() {
   const utmContentRef = useRef<HTMLInputElement>(null)
   const utmTermRef = useRef<HTMLInputElement>(null)
 
+  // Honeypot ref for checking if it's been filled
+  const honeypotRef = useRef<HTMLInputElement>(null)
+
   // Extract UTM parameters from URL on component mount
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href)
       const params = url.searchParams
@@ -60,6 +107,15 @@ export function WaitlistForm() {
     const honeypot = formData.get("honeypot") as string
     if (honeypot) {
       // This is likely a bot - silently reject but show success message
+      console.log("Bot detected via honeypot")
+
+      // Update debug status
+      setDebugStatus((prev) => ({
+        ...prev,
+        honeypot: { status: "tripped", emoji: "❌" },
+        lastUpdate: new Date().toLocaleTimeString(),
+      }))
+
       setIsSubmitting(false)
       setMessage({
         text: "Thanks for joining our waitlist! We'll keep you updated.",
@@ -72,6 +128,7 @@ export function WaitlistForm() {
 
     // Validate email before submission
     if (!isValidEmail(emailValue)) {
+      console.log("Invalid email format rejected on client")
       setIsSubmitting(false)
       setMessage({
         text: "Please enter a valid email address.",
@@ -83,10 +140,32 @@ export function WaitlistForm() {
     try {
       const result = await subscribeToWaitlist(formData)
 
+      // Update rate limit status based on response
+      if (!result.success && result.message.includes("Too many submissions")) {
+        setDebugStatus((prev) => ({
+          ...prev,
+          rateLimit: { status: "Blocked", emoji: "❌" },
+          lastUpdate: new Date().toLocaleTimeString(),
+        }))
+      } else {
+        setDebugStatus((prev) => ({
+          ...prev,
+          rateLimit: { status: "OK", emoji: "✅" },
+          lastUpdate: new Date().toLocaleTimeString(),
+        }))
+      }
+
       if (result.success) {
         // Only clear the email field if it's a new submission (not a duplicate)
         if (!result.isDuplicate) {
           setEmail("")
+
+          // Reset email validation status
+          setDebugStatus((prev) => ({
+            ...prev,
+            emailValid: { status: "pending", emoji: "⏳" },
+            lastUpdate: new Date().toLocaleTimeString(),
+          }))
         }
 
         setMessage({
@@ -133,9 +212,12 @@ export function WaitlistForm() {
         <input type="hidden" name="utm_content" ref={utmContentRef} />
         <input type="hidden" name="utm_term" ref={utmTermRef} />
 
-        {/* Honeypot field */}
-        <div className="hidden" aria-hidden="true">
-          <input type="text" name="honeypot" tabIndex={-1} autoComplete="off" />
+        {/* Honeypot field - properly hidden with CSS */}
+        <div
+          className="absolute opacity-0 pointer-events-none left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden"
+          aria-hidden="true"
+        >
+          <input type="text" name="honeypot" ref={honeypotRef} tabIndex={-1} autoComplete="off" />
         </div>
       </form>
 
@@ -151,6 +233,32 @@ export function WaitlistForm() {
           }`}
         >
           {message.text}
+        </div>
+      )}
+
+      {/* Debug status display - only visible in development mode */}
+      {isDev && (
+        <div className="mt-4 text-xs border border-gray-200 rounded p-2 bg-gray-50">
+          <h4 className="font-semibold mb-1">Debug Status:</h4>
+          <div className="grid grid-cols-2 gap-1">
+            <div>Honeypot:</div>
+            <div>
+              {debugStatus.honeypot.status} {debugStatus.honeypot.emoji}
+            </div>
+
+            <div>Email valid:</div>
+            <div>
+              {debugStatus.emailValid.status} {debugStatus.emailValid.emoji}
+            </div>
+
+            <div>Rate:</div>
+            <div>
+              {debugStatus.rateLimit.status} {debugStatus.rateLimit.emoji}
+            </div>
+
+            <div>Last update:</div>
+            <div>{debugStatus.lastUpdate}</div>
+          </div>
         </div>
       )}
     </div>
