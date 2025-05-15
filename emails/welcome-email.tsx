@@ -19,7 +19,7 @@ export const WelcomeEmail = ({ recipientEmail }: WelcomeEmailProps) => {
               <strong>Welcome to DecisionPoint</strong>
             </Heading>
 
-            <Text className="text-black text-[14px] leading-[24px]">Hello {recipientEmail},</Text>
+            <Text className="text-black text-[14px] leading-[24px]">Hello!</Text>
 
             <Text className="text-black text-[14px] leading-[24px]">
               Thanks for joining the DecisionPoint waitlist! We're building a platform to help business brokers simplify
@@ -32,6 +32,12 @@ export const WelcomeEmail = ({ recipientEmail }: WelcomeEmailProps) => {
 
             <Text className="text-black text-[14px] leading-[24px]">
               In the meantime, if you have any questions or feedback, feel free to reply to this email.
+            </Text>
+
+            <Text className="text-black text-[14px] leading-[24px]">
+              Connect with us on:
+              <br />• LinkedIn (linkedin.com/company/decisionpoint-os)
+              <br />• Instagram (https://www.instagram.com/decisionpoint.os/)
             </Text>
 
             <Text className="text-black text-[14px] leading-[24px]">
