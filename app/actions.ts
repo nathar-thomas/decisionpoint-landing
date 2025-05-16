@@ -190,8 +190,7 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
       verified: false,
       verification_token: verificationToken,
       verification_sent_at: new Date().toISOString(),
-      client_id: clientId, // Store client ID for rate limiting tracking
-      submission_count: submissions[clientId].count, // Track submission count
+      // Remove client_id and submission_count fields as they don't exist in the database schema
     }
 
     // Check if email already exists
@@ -237,8 +236,7 @@ export async function subscribeToWaitlist(formData: FormData): Promise<Subscribe
           .update({
             verification_token: verificationToken,
             verification_sent_at: new Date().toISOString(),
-            client_id: clientId, // Update client ID
-            submission_count: submissions[clientId].count, // Update submission count
+            // Remove client_id and submission_count fields
           })
           .eq("email", email.toLowerCase().trim())
 
