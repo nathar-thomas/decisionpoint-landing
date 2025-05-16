@@ -5,36 +5,11 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { subscribeToWaitlist } from "@/app/actions"
 
-// Enhanced email validation
+// Replace the entire isValidEmail function with this more permissive version
 const isValidEmail = (email: string): boolean => {
-  // Basic regex for email validation
+  // Basic regex for email validation - this is the only check we'll do client-side
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-  if (!emailRegex.test(email)) {
-    console.log("Email failed basic format validation")
-    return false
-  }
-
-  // Check for common TLDs
-  const validTLDs = [".com", ".org", ".net", ".edu", ".gov", ".io", ".co", ".us", ".uk", ".ca", ".au"]
-  if (!validTLDs.some((tld) => email.toLowerCase().endsWith(tld))) {
-    console.log("Email has suspicious TLD")
-    return false
-  }
-
-  // Check for suspicious patterns
-  if (
-    email.includes("test") ||
-    email.includes("123") ||
-    email.includes("example") ||
-    email.includes("user") ||
-    /\d{4,}/.test(email) // Contains 4+ consecutive digits
-  ) {
-    console.log("Email contains suspicious patterns")
-    return false
-  }
-
-  return true
+  return emailRegex.test(email)
 }
 
 export function WaitlistForm() {

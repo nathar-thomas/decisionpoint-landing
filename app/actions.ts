@@ -42,44 +42,16 @@ function isValidEmailServer(email: string): boolean {
     return false
   }
 
-  // Check for suspicious patterns
-  const suspiciousPatterns = [
-    /test/i,
-    /example/i,
-    /[0-9]{4,}/, // 4+ consecutive digits
-    /admin/i,
-    /user/i,
-    /temp/i,
-    /fake/i,
-    /disposable/i,
-    /noreply/i,
-    /no-reply/i,
-  ]
+  // We're removing the TLD check and most suspicious pattern checks
+  // Only keeping the most obvious spam patterns
+  const suspiciousPatterns = [/^test@/i, /^example@/i, /^noreply@/i, /^no-reply@/i]
 
   if (suspiciousPatterns.some((pattern) => pattern.test(email))) {
-    console.log("Invalid email rejected: Contains suspicious patterns")
+    console.log("Invalid email rejected: Contains obvious test patterns")
     return false
   }
 
-  // Check for disposable email domains
-  const disposableDomains = [
-    "tempmail.com",
-    "temp-mail.org",
-    "throwawaymail.com",
-    "mailinator.com",
-    "yopmail.com",
-    "guerrillamail.com",
-    "sharklasers.com",
-    "10minutemail.com",
-    "trashmail.com",
-    "disposablemail.com",
-  ]
-
-  const domain = email.split("@")[1].toLowerCase()
-  if (disposableDomains.some((d) => domain.includes(d))) {
-    console.log("Invalid email rejected: Disposable email domain")
-    return false
-  }
+  // Removed disposable domain check
 
   return true
 }
