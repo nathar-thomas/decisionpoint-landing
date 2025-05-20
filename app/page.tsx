@@ -355,11 +355,20 @@ export default function LandingPage() {
           <div className="flex flex-col gap-2 text-sm">
             <p className="font-medium">Follow Us</p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                Twitter
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a
+                href="https://www.linkedin.com/company/decisionpoint-os/about/?viewAsMember=true"
+                className="text-muted-foreground hover:text-foreground"
+              >
                 LinkedIn
+              </a>
+              <a href="https://www.instagram.com/decisionpnt/" className="text-muted-foreground hover:text-foreground">
+                Instagram
+              </a>
+              <a
+                href="https://www.facebook.com/people/DecisionPoint/61576385578079/?sk=about"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Facebook
               </a>
             </div>
           </div>
