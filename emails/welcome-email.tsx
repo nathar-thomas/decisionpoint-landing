@@ -38,14 +38,14 @@ export const WelcomeEmail = ({ recipientEmail }: WelcomeEmailProps) => {
               Connect with us on:
               <br />•{" "}
               <a
-                href="https://linkedin.com/company/decisionpoint-os"
+                href="https://linkedin.com/company/decisionpnt-os"
                 style={{ color: "#0077b5", textDecoration: "underline" }}
               >
                 LinkedIn
               </a>
               <br />•{" "}
               <a
-                href="https://www.instagram.com/decisionpoint.os/"
+                href="https://www.instagram.com/decisionpnt.os/"
                 style={{ color: "#e1306c", textDecoration: "underline" }}
               >
                 Instagram

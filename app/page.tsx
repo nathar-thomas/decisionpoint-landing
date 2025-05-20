@@ -264,7 +264,7 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Frequently Asked Questions</h2>
                 <p className="mx-auto max-w-[700px] text-muted-foreground">
-                  If you can't find the answer to your question below, email us at hello@decisionpoint.com
+                  If you can't find the answer to your question below, email us at hello@decisionpnt.com
                 </p>
               </div>
 
@@ -348,8 +348,8 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col gap-2 text-sm">
             <p className="font-medium">Contact</p>
-            <a href="mailto:hello@decisionpoint.com" className="text-muted-foreground hover:underline">
-              hello@decisionpoint.com
+            <a href="mailto:hello@decisionpnt.com" className="text-muted-foreground hover:underline">
+              hello@decisionpnt.com
             </a>
           </div>
           <div className="flex flex-col gap-2 text-sm">
