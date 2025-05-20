@@ -9,8 +9,11 @@ export default function LandingPage() {
       <header className="border-b border-border/40 bg-background">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <Briefcase className="h-6 w-6" />
-            <span className="text-xl font-semibold">DecisionPoint</span>
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DecisionBlack%402x-Pj9QeOjaevD1Oy4UNwlwtYEXNVovUU.png"
+              alt="DecisionPoint Logo"
+              className="h-8 w-auto"
+            />
           </div>
           <nav className="hidden md:flex gap-6">
             <a href="#features" className="text-sm font-medium hover:underline underline-offset-4">
@@ -341,8 +344,11 @@ export default function LandingPage() {
         <div className="container flex flex-col gap-4 py-10 md:flex-row md:justify-between md:py-12 px-4 md:px-6">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              <span className="text-lg font-semibold">DecisionPoint</span>
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DecisionBlack%402x-Pj9QeOjaevD1Oy4UNwlwtYEXNVovUU.png"
+                alt="DecisionPoint Logo"
+                className="h-6 w-auto"
+              />
             </div>
             <p className="text-sm text-muted-foreground">Simplifying M&A for business brokers and advisors.</p>
           </div>
