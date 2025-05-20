@@ -38,7 +38,7 @@ export const WelcomeEmail = ({ recipientEmail }: WelcomeEmailProps) => {
               Connect with us on:
               <br />•{" "}
               <a
-                href="https://www.linkedin.com/company/decisionpoint-os/about/?viewAsMember=true"
+                href="https://www.linkedin.com/company/decisionpoint-os/"
                 style={{ color: "#0077b5", textDecoration: "underline" }}
               >
                 LinkedIn
@@ -51,10 +51,7 @@ export const WelcomeEmail = ({ recipientEmail }: WelcomeEmailProps) => {
                 Instagram
               </a>
               <br />•{" "}
-              <a
-                href="https://www.facebook.com/people/DecisionPoint/61576385578079/?sk=about"
-                style={{ color: "#3b5998", textDecoration: "underline" }}
-              >
+              <a href="https://www.facebook.com/decisionpnt/" style={{ color: "#3b5998", textDecoration: "underline" }}>
                 Facebook
               </a>
             </Text>
