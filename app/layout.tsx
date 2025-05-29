@@ -5,6 +5,35 @@ import "./globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import { Suspense } from "react"
 
+// We'll use dynamic imports to handle the case where the package isn't installed
+const SpeedInsightsScript = () => {
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            try {
+              // Only load if the package exists
+              if (typeof window !== 'undefined') {
+                import('@vercel/speed-insights/next').then(({ SpeedInsights }) => {
+                  // The package exists and was loaded
+                  console.log('Speed Insights loaded successfully');
+                }).catch(err => {
+                  // The package doesn't exist, silently fail
+                  console.log('Speed Insights not available:', err.message);
+                });
+              }
+            } catch (e) {
+              // Silently fail if there's an error
+              console.log('Error loading Speed Insights:', e.message);
+            }
+          })();
+        `,
+      }}
+    />
+  )
+}
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -30,7 +59,8 @@ export default function RootLayout({
         <Suspense>
           {children}
           <Analytics />
-          {/* SpeedInsights removed to fix the error */}
+          {/* This script will try to load SpeedInsights if available */}
+          <SpeedInsightsScript />
         </Suspense>
       </body>
     </html>

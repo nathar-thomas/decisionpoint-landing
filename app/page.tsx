@@ -2,20 +2,19 @@ import { Briefcase, CheckCircle, FileText, BarChart3 } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { BusinessProspectus } from "@/components/business-prospectus"
-import Link from "next/link"
 
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <img
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DecisionBlack%402x-Pj9QeOjaevD1Oy4UNwlwtYEXNVovUU.png"
               alt="DecisionPoint Logo"
               className="h-8 w-auto"
             />
-          </Link>
+          </div>
           <nav className="hidden md:flex gap-6">
             <a href="#features" className="text-sm font-medium hover:underline underline-offset-4">
               Features
@@ -31,7 +30,7 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-10 md:py-20 lg:py-26 xl:py-38 relative">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 relative">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
@@ -48,7 +47,7 @@ export default function LandingPage() {
           </div>
 
           {/* Screenshot with gradient overlay */}
-          <div className="relative mt-16 w-full max-w-[68%] mx-auto">
+          <div className="relative mt-16 w-full max-w-[85%] mx-auto">
             <div className="rounded-[16px] overflow-hidden shadow-xl border border-[#D9D9D9]">
               <img
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVnb6698J2GotNvlC4urTpaLmBc5Ls.png"
@@ -287,8 +286,8 @@ export default function LandingPage() {
                       Do sellers or third parties use the platform directly?
                     </AccordionTrigger>
                     <AccordionContent className="text-left">
-                      At this stage, only brokers can upload documents and enter information. We plan to introduce
-                      seller portals and shared access features in a future update.
+                      Not in the MVP. Brokers manage all uploads and inputs. Seller portals and contributor access are
+                      part of our future roadmap.
                     </AccordionContent>
                   </AccordionItem>
 
