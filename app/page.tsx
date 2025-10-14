@@ -10,11 +10,12 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <img
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DecisionBlack%402x-Pj9QeOjaevD1Oy4UNwlwtYEXNVovUU.png"
-              alt="DecisionPoint Logo"
-              className="h-8 w-auto"
-            />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">P</span>
+              </div>
+              <span className="text-xl font-bold">Pendl</span>
+            </div>
           </Link>
           <nav className="hidden md:flex gap-6">
             <a href="#features" className="text-sm font-medium hover:underline underline-offset-4">
@@ -36,11 +37,10 @@ export default function LandingPage() {
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Fewer follow-ups. Faster deals.
+                  Practice intelligence that sells deals.
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  DecisionPoint helps business brokers simplify seller onboarding, organize documents, and get to
-                  closing day with less chaos.
+                  Pendl gives dental practice brokers automated EBITDA extraction and operational insights from tax returns in 30 minutes, not 4 hours.
                 </p>
               </div>
               <WaitlistForm />
@@ -66,13 +66,13 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
-                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Document Management</div>
+                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Automated EBITDA</div>
                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                  Stay on Track Without the Back-and-Forth
+                  From Tax Returns to EBITDA in Minutes
                 </h2>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Tired of chasing sellers for tax returns or explaining P&Ls over email? DecisionPoint gives you a
-                  shared workspace where tasks are clear, files are in one place, and sellers know what's next.
+                  Upload dental practice tax returns and get automated EBITDA extraction with normalized adjustments. 
+                  No more manual P&L calculations or Excel gymnastics to prepare practice packages.
                 </p>
               </div>
               <div className="flex justify-center">
@@ -152,13 +152,13 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Data Organization</div>
+                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Practice Intelligence</div>
                 <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                  Win Over Buyers with Organized Data
+                  Operational Insights That Close Deals
                 </h2>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Good buyers move fast — when your documents are clean. DecisionPoint helps you collect and structure
-                  seller info so buyers can evaluate and act without delays.
+                  Beyond EBITDA: Get automated analysis of growth opportunities, operational red flags, and buyer-focused 
+                  intelligence that helps dental practices sell faster and for better multiples.
                 </p>
               </div>
             </div>
