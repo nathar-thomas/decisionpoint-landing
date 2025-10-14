@@ -211,11 +211,11 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Broker-First</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Built for Brokers, Not Startups
+                  Built for Dental Practice Brokers
                 </h2>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  We're not here to automate you out of the deal. DecisionPoint is purpose-built for brokers who manage
-                  real people, real businesses, and real outcomes — not tech-driven founders trying to skip the middle.
+                  Pendl understands dental practices aren't just businesses - they're specialized operations with unique metrics, 
+                  buyer criteria, and valuation methods. We speak your language, not generic business broker-speak.
                 </p>
               </div>
               <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 md:grid-cols-2 lg:grid-cols-4">
