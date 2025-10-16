@@ -10,7 +10,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
+    --primary: 221 83% 53%; /* ProDeal inspired blue #4774de */
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -22,8 +22,17 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --ring: 221 83% 53%; /* Match primary blue */
+    --radius: 0.75rem; /* Slightly more rounded for modern feel */
+    
+    /* ProDeal360 inspired custom properties */
+    --pendl-blue: 221 83% 53%;
+    --pendl-blue-light: 221 83% 90%;
+    --pendl-blue-dark: 221 83% 40%;
+    --gray-50: 240 5% 96%;
+    --gray-100: 240 5% 90%;
+    --gray-600: 240 5% 45%;
+    --gray-900: 240 10% 10%;
   }
 
   .dark {
@@ -73,4 +82,37 @@
 
 .float-animation {
   animation: float 6s ease-in-out infinite;
+}
+
+/* ProDeal360 inspired components */
+@layer components {
+  .pendl-card-before {
+    @apply bg-gray-50 border-2 border-gray-200 rounded-xl p-6 transition-all duration-300;
+  }
+  
+  .pendl-card-after {
+    @apply bg-blue-50 border-2 border-blue-200 rounded-xl p-6 transition-all duration-300 relative overflow-hidden;
+  }
+  
+  .pendl-file-stack {
+    @apply relative inline-block;
+  }
+  
+  .pendl-trust-indicator {
+    @apply flex items-center gap-2 text-sm text-gray-600 transition-colors duration-200 hover:text-gray-800;
+  }
+}
+
+/* Subtle animations for interactivity */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
 }

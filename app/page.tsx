@@ -32,31 +32,119 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-10 md:py-20 lg:py-26 xl:py-38 relative">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Practice intelligence that sells deals.
-                </h1>
-                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  Pendl gives dental practice brokers automated EBITDA extraction and operational insights from tax returns in 30 minutes, not 4 hours.
-                </p>
-              </div>
-              <WaitlistForm />
-            </div>
-          </div>
+        <section className="w-full py-16 md:py-24 lg:py-32 relative bg-white">
+          <div className="container px-4 md:px-6 max-w-6xl mx-auto">
+            {/* Main heading and value prop */}
+            <div className="text-center space-y-6 mb-16">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
+                Practice intelligence that sells deals.
+              </h1>
+              
+              {/* Before/After Transformation */}
+              <div className="mt-12 mb-8">
+                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                  {/* BEFORE */}
+                  <div className="space-y-4">
+                    <div className="text-left">
+                      <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide mb-4">BEFORE</h3>
+                      <div className="pendl-card-before hover:shadow-md">
+                        {/* File stack visualization */}
+                        <div className="flex items-start gap-4">
+                          <div className="pendl-file-stack">
+                            <div className="w-10 h-12 bg-gray-300 rounded-sm transform rotate-6 absolute shadow-sm"></div>
+                            <div className="w-10 h-12 bg-gray-400 rounded-sm transform rotate-12 absolute left-1 shadow-sm"></div>
+                            <div className="w-10 h-12 bg-gray-500 rounded-sm transform rotate-[18deg] absolute left-2 shadow-sm"></div>
+                            <div className="w-10 h-12 bg-gray-600 rounded-sm relative left-3 shadow-sm"></div>
+                          </div>
+                          <div className="flex-1 pt-2">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2 text-gray-700">
+                                <span className="text-orange-500">📊</span>
+                                <span className="font-medium">Manual Analysis</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-gray-700">
+                                <span className="text-red-500">📋</span>
+                                <span className="font-medium">4-6 Hours</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-gray-700">
+                                <span className="text-yellow-500">🤔</span>
+                                <span className="font-medium">Guesswork</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-gray-700">
+                                <span className="text-red-600">😰</span>
+                                <span className="font-medium">Miss Opportunities</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Screenshot with gradient overlay */}
-          <div className="relative mt-16 w-full max-w-[68%] mx-auto">
-            <div className="rounded-[16px] overflow-hidden shadow-xl border border-[#D9D9D9]">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-AVnb6698J2GotNvlC4urTpaLmBc5Ls.png"
-                alt="DecisionPoint dashboard showing business details, tasks, and document management"
-                className="w-full h-auto"
-              />
-              {/* Gradient overlay that fades into the next section */}
-              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background rounded-b-[16px]"></div>
+                  {/* AFTER */}
+                  <div className="space-y-4">
+                    <div className="text-left">
+                      <h3 className="text-lg font-semibold text-blue-600 uppercase tracking-wide mb-4">AFTER</h3>
+                      <div className="pendl-card-after hover:shadow-lg">
+                        {/* Success visualization */}
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg pulse-subtle">
+                            <span className="text-white text-2xl">⚡</span>
+                          </div>
+                          <div className="flex-1 pt-2">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2 text-blue-800">
+                                <span className="text-green-500">⚡</span>
+                                <span className="font-semibold">30 Minutes</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-blue-800">
+                                <span className="text-blue-500">🎯</span>
+                                <span className="font-semibold">AI-Powered</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-blue-800">
+                                <span className="text-purple-500">💡</span>
+                                <span className="font-semibold">Intelligence</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Success indicators */}
+                        <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-green-100 rounded-full opacity-30"></div>
+                        <div className="absolute -bottom-3 -right-3 w-8 h-8 bg-green-200 rounded-full opacity-20"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Transformation message */}
+                <div className="mt-8 text-center">
+                  <p className="text-lg font-medium text-gray-600 italic">
+                    "From number-cruncher to strategic advisor"
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="flex flex-wrap justify-center items-center gap-8 py-8 border-t border-gray-100">
+              <div className="pendl-trust-indicator">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600">🔒</span>
+                </div>
+                <span className="font-medium">Bank-Level Security</span>
+              </div>
+              <div className="pendl-trust-indicator">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600">⚡</span>
+                </div>
+                <span className="font-medium">30-Min Analysis</span>
+              </div>
+              <div className="pendl-trust-indicator">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600">🎯</span>
+                </div>
+                <span className="font-medium">Industry Data</span>
+              </div>
             </div>
           </div>
         </section>
