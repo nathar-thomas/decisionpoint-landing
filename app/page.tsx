@@ -1,4 +1,4 @@
-import { Briefcase, CheckCircle, FileText, BarChart3 } from "lucide-react"
+import { Briefcase, CheckCircle, FileText, BarChart3, Clock, Calculator, AlertTriangle, TrendingDown, Zap, Target, Brain, Shield, Users, Award } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { BusinessProspectus } from "@/components/business-prospectus"
@@ -47,34 +47,37 @@ export default function LandingPage() {
                   <div className="space-y-4">
                     <div className="text-left">
                       <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide mb-4">BEFORE</h3>
-                      <div className="pendl-card-before hover:shadow-md">
-                        {/* File stack visualization */}
-                        <div className="flex items-start gap-4">
-                          <div className="pendl-file-stack">
-                            <div className="w-10 h-12 bg-gray-300 rounded-sm transform rotate-6 absolute shadow-sm"></div>
-                            <div className="w-10 h-12 bg-gray-400 rounded-sm transform rotate-12 absolute left-1 shadow-sm"></div>
-                            <div className="w-10 h-12 bg-gray-500 rounded-sm transform rotate-[18deg] absolute left-2 shadow-sm"></div>
-                            <div className="w-10 h-12 bg-gray-600 rounded-sm relative left-3 shadow-sm"></div>
-                          </div>
-                          <div className="flex-1 pt-2">
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2 text-gray-700">
-                                <span className="text-orange-500">📊</span>
-                                <span className="font-medium">Manual Analysis</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-700">
-                                <span className="text-red-500">📋</span>
-                                <span className="font-medium">4-6 Hours</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-700">
-                                <span className="text-yellow-500">🤔</span>
-                                <span className="font-medium">Guesswork</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-700">
-                                <span className="text-red-600">😰</span>
-                                <span className="font-medium">Miss Opportunities</span>
-                              </div>
+                      <div className="pendl-card-before hover:shadow-md min-h-[200px]">
+                        {/* Placeholder for custom before visualization */}
+                        <div className="h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-4">
+                          <span className="text-gray-500 text-sm font-medium">[Custom Before Visualization]</span>
+                        </div>
+                        
+                        {/* Process indicators with icons */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3 text-gray-700">
+                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                              <Calculator className="w-4 h-4 text-orange-600" />
                             </div>
+                            <span className="font-medium">Manual Analysis</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-gray-700">
+                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                              <Clock className="w-4 h-4 text-red-600" />
+                            </div>
+                            <span className="font-medium">4-6 Hours</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-gray-700">
+                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                            </div>
+                            <span className="font-medium">Guesswork</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-gray-700">
+                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                              <TrendingDown className="w-4 h-4 text-red-600" />
+                            </div>
+                            <span className="font-medium">Miss Opportunities</span>
                           </div>
                         </div>
                       </div>
@@ -85,32 +88,33 @@ export default function LandingPage() {
                   <div className="space-y-4">
                     <div className="text-left">
                       <h3 className="text-lg font-semibold text-blue-600 uppercase tracking-wide mb-4">AFTER</h3>
-                      <div className="pendl-card-after hover:shadow-lg">
-                        {/* Success visualization */}
-                        <div className="flex items-start gap-4">
-                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg pulse-subtle">
-                            <span className="text-white text-2xl">⚡</span>
-                          </div>
-                          <div className="flex-1 pt-2">
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2 text-blue-800">
-                                <span className="text-green-500">⚡</span>
-                                <span className="font-semibold">30 Minutes</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-blue-800">
-                                <span className="text-blue-500">🎯</span>
-                                <span className="font-semibold">AI-Powered</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-blue-800">
-                                <span className="text-purple-500">💡</span>
-                                <span className="font-semibold">Intelligence</span>
-                              </div>
+                      <div className="pendl-card-after hover:shadow-lg min-h-[200px]">
+                        {/* Placeholder for custom after visualization */}
+                        <div className="h-32 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300 flex items-center justify-center mb-4">
+                          <span className="text-blue-600 text-sm font-medium">[Custom After Visualization]</span>
+                        </div>
+                        
+                        {/* Success indicators with icons */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3 text-blue-800">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <Zap className="w-4 h-4 text-green-600" />
                             </div>
+                            <span className="font-semibold">30 Minutes</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-blue-800">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Target className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <span className="font-semibold">AI-Powered</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-blue-800">
+                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                              <Brain className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <span className="font-semibold">Intelligence</span>
                           </div>
                         </div>
-                        {/* Success indicators */}
-                        <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-green-100 rounded-full opacity-30"></div>
-                        <div className="absolute -bottom-3 -right-3 w-8 h-8 bg-green-200 rounded-full opacity-20"></div>
                       </div>
                     </div>
                   </div>
@@ -129,19 +133,19 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center items-center gap-8 py-8 border-t border-gray-100">
               <div className="pendl-trust-indicator">
                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600">🔒</span>
+                  <Shield className="w-4 h-4 text-green-600" />
                 </div>
                 <span className="font-medium">Bank-Level Security</span>
               </div>
               <div className="pendl-trust-indicator">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600">⚡</span>
+                  <Zap className="w-4 h-4 text-blue-600" />
                 </div>
                 <span className="font-medium">30-Min Analysis</span>
               </div>
               <div className="pendl-trust-indicator">
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600">🎯</span>
+                  <Award className="w-4 h-4 text-purple-600" />
                 </div>
                 <span className="font-medium">Industry Data</span>
               </div>
