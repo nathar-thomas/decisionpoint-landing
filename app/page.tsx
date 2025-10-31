@@ -35,7 +35,7 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6 max-w-7xl mx-auto">
 
             {/* Main Headline */}
-            <div className="text-center space-y-4 mb-8">
+            <div className="text-center space-y-4 mb-4">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
                 Your Market Knowledge
                 <br />
@@ -47,7 +47,7 @@ export default function LandingPage() {
             </div>
 
             {/* Practice Analytics Demo */}
-            <div className="relative max-w-5xl mx-auto">
+            <div className="relative max-w-5xl mx-auto" style={{marginTop: '100px'}}>
               {/* Dental Practice Background */}
               <div className="relative">
                 <img 
