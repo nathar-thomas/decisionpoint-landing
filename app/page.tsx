@@ -11,9 +11,11 @@ export default function LandingPage() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">P</span>
-              </div>
+              <img
+                src="/pendl-logo-boxed.png"
+                alt="Pendl Logo"
+                className="h-8 w-8"
+              />
               <span className="text-xl font-bold">Pendl</span>
             </div>
           </Link>
@@ -32,122 +34,111 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 relative bg-white">
-          <div className="container px-4 md:px-6 max-w-6xl mx-auto">
-            {/* Main heading and value prop */}
-            <div className="text-center space-y-6 mb-16">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
-                Practice intelligence that sells deals.
-              </h1>
-              
-              {/* Before/After Transformation */}
-              <div className="mt-12 mb-8">
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                  {/* BEFORE */}
-                  <div className="space-y-4">
-                    <div className="text-left">
-                      <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide mb-4">BEFORE</h3>
-                      <div className="pendl-card-before hover:shadow-md min-h-[200px]">
-                        {/* Placeholder for custom before visualization */}
-                        <div className="h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-4">
-                          <span className="text-gray-500 text-sm font-medium">[Custom Before Visualization]</span>
-                        </div>
-                        
-                        {/* Process indicators with icons */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3 text-gray-700">
-                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                              <Calculator className="w-4 h-4 text-orange-600" />
-                            </div>
-                            <span className="font-medium">Manual Analysis</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-gray-700">
-                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                              <Clock className="w-4 h-4 text-red-600" />
-                            </div>
-                            <span className="font-medium">4-6 Hours</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-gray-700">
-                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                              <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                            </div>
-                            <span className="font-medium">Guesswork</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-gray-700">
-                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                              <TrendingDown className="w-4 h-4 text-red-600" />
-                            </div>
-                            <span className="font-medium">Miss Opportunities</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* AFTER */}
-                  <div className="space-y-4">
-                    <div className="text-left">
-                      <h3 className="text-lg font-semibold text-blue-600 uppercase tracking-wide mb-4">AFTER</h3>
-                      <div className="pendl-card-after hover:shadow-lg min-h-[200px]">
-                        {/* Placeholder for custom after visualization */}
-                        <div className="h-32 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300 flex items-center justify-center mb-4">
-                          <span className="text-blue-600 text-sm font-medium">[Custom After Visualization]</span>
-                        </div>
-                        
-                        {/* Success indicators with icons */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3 text-blue-800">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <Zap className="w-4 h-4 text-green-600" />
-                            </div>
-                            <span className="font-semibold">30 Minutes</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-blue-800">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Target className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <span className="font-semibold">AI-Powered</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-blue-800">
-                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                              <Brain className="w-4 h-4 text-purple-600" />
-                            </div>
-                            <span className="font-semibold">Intelligence</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Transformation message */}
-                <div className="mt-8 text-center">
-                  <p className="text-lg font-medium text-gray-600 italic">
-                    "From number-cruncher to strategic advisor"
-                  </p>
-                </div>
+        <section className="w-full py-16 md:py-24 lg:py-32 relative bg-white overflow-hidden">
+          <div className="container px-4 md:px-6 max-w-7xl mx-auto">
+            {/* Trust Badge */}
+            <div className="flex justify-center mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
+                <Users className="w-4 h-4" />
+                Best fit: Individual buyer
               </div>
             </div>
 
-            {/* Trust indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 py-8 border-t border-gray-100">
-              <div className="pendl-trust-indicator">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-green-600" />
+            {/* Main Headline */}
+            <div className="text-center space-y-4 mb-16">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
+                Your Market Knowledge
+                <br />
+                <span className="text-gray-900">+ Our Data Science</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-600 font-medium">
+                10x your practice throughput without 10x the work.
+              </p>
+            </div>
+
+            {/* Practice Analytics Demo */}
+            <div className="relative max-w-5xl mx-auto">
+              {/* Dental Practice Background */}
+              <div className="relative">
+                <img 
+                  src="/dental-practice.png" 
+                  alt="Modern dental practice" 
+                  className="w-full h-auto rounded-2xl shadow-2xl"
+                />
+                
+                {/* Floating Dashboard Cards */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Monthly Cashflow Card - Top Left */}
+                  <div className="absolute top-4 left-4 md:top-8 md:left-8 animate-float-1">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[200px]">
+                      <div className="text-sm text-gray-500 mb-1">Monthly Cashflow</div>
+                      <div className="text-2xl font-bold text-gray-900">$26.8k</div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-green-600 flex items-center gap-1">
+                          ↑ 8%
+                        </span>
+                        <span className="text-gray-500">Owner Take-Home Ready</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* EBITDA Margin Card - Top */}
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 md:top-8 animate-float-2">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[220px]">
+                      <div className="text-sm text-gray-500 mb-1">EBITDA Margin</div>
+                      <div className="text-2xl font-bold text-gray-900">13.55%</div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-red-600 flex items-center gap-1">
+                          ↓ 46%
+                        </span>
+                        <span className="text-gray-500">Industry average: 25-35%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Practice Valuation Card - Center */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-float-3">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-xl max-w-[280px]">
+                      <div className="text-sm text-gray-500 mb-1">Practice Valuation</div>
+                      <div className="text-3xl font-bold text-gray-900 mb-1">$2.4M</div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-green-600 flex items-center gap-1">
+                          ↑ 12%
+                        </span>
+                        <span className="text-gray-600">Based on $321K EBITDA</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Patient Retention Card - Top Right */}
+                  <div className="absolute top-4 right-4 md:top-8 md:right-8 animate-float-4">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[200px]">
+                      <div className="text-sm text-gray-500 mb-1">Patient Retention</div>
+                      <div className="text-2xl font-bold text-gray-900">82%</div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-green-600 flex items-center gap-1">
+                          ↑
+                        </span>
+                        <span className="text-gray-500">Industry Avg: 80%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Collection Rate Card - Bottom Right */}
+                  <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 animate-float-5">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[220px]">
+                      <div className="text-sm text-gray-500 mb-1">Collection Rate</div>
+                      <div className="text-2xl font-bold text-orange-600">73%</div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-orange-600 flex items-center gap-1">
+                          ⚠
+                        </span>
+                        <span className="text-gray-500">Industry Avg: 95%</span>
+                      </div>
+                      <div className="text-xs text-orange-600 mt-1">180K Annual Opportunity</div>
+                    </div>
+                  </div>
                 </div>
-                <span className="font-medium">Bank-Level Security</span>
-              </div>
-              <div className="pendl-trust-indicator">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-blue-600" />
-                </div>
-                <span className="font-medium">30-Min Analysis</span>
-              </div>
-              <div className="pendl-trust-indicator">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Award className="w-4 h-4 text-purple-600" />
-                </div>
-                <span className="font-medium">Industry Data</span>
               </div>
             </div>
           </div>
@@ -164,7 +155,7 @@ export default function LandingPage() {
                 </h2>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Upload dental practice tax returns and get automated EBITDA extraction with normalized adjustments. 
-                  No more manual P&L calculations or Excel gymnastics to prepare practice packages.
+                  No more manual P&L calculations or Excel gymnastics to prepare practice valuations.
                 </p>
               </div>
               <div className="flex justify-center">
@@ -267,8 +258,8 @@ export default function LandingPage() {
                   Create Professional Prospectuses in Minutes
                 </h2>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Stop spending days formatting documents and spreadsheets. DecisionPoint automatically generates
-                  polished, broker-branded prospectuses from your seller's data — ready to share with qualified buyers.
+                  Stop spending days formatting documents and spreadsheets. Pendl automatically generates
+                  polished, broker-branded valuations from your practice data — ready to share with qualified buyers.
                 </p>
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
@@ -360,7 +351,7 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Frequently Asked Questions</h2>
                 <p className="mx-auto max-w-[700px] text-muted-foreground">
-                  If you can't find the answer to your question below, email us at hello@decisionpnt.com
+                  If you can't find the answer to your question below, email us at hi@pendl.io
                 </p>
               </div>
 
@@ -369,8 +360,8 @@ export default function LandingPage() {
                   <AccordionItem value="item-1">
                     <AccordionTrigger className="text-left">Is this built to replace brokers?</AccordionTrigger>
                     <AccordionContent className="text-left">
-                      No — DecisionPoint is designed to support brokers by simplifying document collection, business
-                      analysis, and prospectus creation. You stay in control of the deal.
+                      No — Pendl is designed to support dental brokers by simplifying practice analysis and
+                      valuation creation. You stay in control of the deal and client relationships.
                     </AccordionContent>
                   </AccordionItem>
 
@@ -423,7 +414,7 @@ export default function LandingPage() {
                 Let's make deal prep the easy part.
               </h2>
               <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                We're building DecisionPoint for brokers like you. Join early, shape the product, and close with
+                We're building Pendl for dental brokers like you. Join early, shape the product, and close with
                 confidence.
               </p>
             </div>
@@ -438,32 +429,32 @@ export default function LandingPage() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DecisionBlack%402x-Pj9QeOjaevD1Oy4UNwlwtYEXNVovUU.png"
-                alt="DecisionPoint Logo"
+                src="/pendl-logo.png"
+                alt="Pendl Logo"
                 className="h-6 w-auto"
               />
             </div>
-            <p className="text-sm text-muted-foreground">Simplifying M&A for business brokers and advisors.</p>
+            <p className="text-sm text-muted-foreground">Practice intelligence for dental brokers.</p>
           </div>
           <div className="flex flex-col gap-2 text-sm">
             <p className="font-medium">Contact</p>
-            <a href="mailto:hello@decisionpnt.com" className="text-muted-foreground hover:underline">
-              hello@decisionpnt.com
+            <a href="mailto:hi@pendl.io" className="text-muted-foreground hover:underline">
+              hi@pendl.io
             </a>
           </div>
           <div className="flex flex-col gap-2 text-sm">
             <p className="font-medium">Follow Us</p>
             <div className="flex gap-4">
               <a
-                href="https://www.linkedin.com/company/decisionpoint-os/"
+                href="https://www.linkedin.com/company/pendl/"
                 className="text-muted-foreground hover:text-foreground"
               >
                 LinkedIn
               </a>
-              <a href="https://www.instagram.com/decisionpnt/" className="text-muted-foreground hover:text-foreground">
+              <a href="https://www.instagram.com/pendl/" className="text-muted-foreground hover:text-foreground">
                 Instagram
               </a>
-              <a href="https://www.facebook.com/decisionpnt/" className="text-muted-foreground hover:text-foreground">
+              <a href="https://www.facebook.com/pendl/" className="text-muted-foreground hover:text-foreground">
                 Facebook
               </a>
             </div>
@@ -483,7 +474,7 @@ export default function LandingPage() {
         <div className="border-t border-border/40">
           <div className="container flex h-16 items-center px-4 md:px-6">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} DecisionPoint. All rights reserved.
+              © {new Date().getFullYear()} Pendl. All rights reserved.
             </p>
           </div>
         </div>
