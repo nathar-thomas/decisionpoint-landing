@@ -56,38 +56,10 @@ export default function LandingPage() {
                   className="w-full h-auto rounded-2xl"
                 />
                 
-                {/* Floating Dashboard Cards */}
+                {/* Floating Dashboard Cards - Clustered around building */}
                 <div className="absolute inset-0 pointer-events-none">
-                  {/* Monthly Cashflow Card - Top Left */}
-                  <div className="absolute top-4 left-2 md:top-6 md:left-4 animate-float-1">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[180px]">
-                      <div className="text-xs text-gray-500 mb-1">Monthly Cashflow</div>
-                      <div className="text-xl font-bold text-gray-900">$26.8k</div>
-                      <div className="flex items-center gap-1 text-xs">
-                        <span className="text-green-600 flex items-center gap-1">
-                          ↑ 8%
-                        </span>
-                        <span className="text-gray-500">Owner Take-Home Ready</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* EBITDA Margin Card - Left Side */}
-                  <div className="absolute top-20 left-2 md:top-32 md:left-4 animate-float-2">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[200px]">
-                      <div className="text-xs text-gray-500 mb-1">EBITDA Margin</div>
-                      <div className="text-xl font-bold text-gray-900">13.55%</div>
-                      <div className="flex items-center gap-1 text-xs">
-                        <span className="text-red-600 flex items-center gap-1">
-                          ↓ 46%
-                        </span>
-                        <span className="text-gray-500">Industry average: 25-35%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Practice Valuation Card - Center */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-float-3">
+                  {/* Practice Valuation Card - Center/Top (above building roof) */}
+                  <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 animate-float-3 z-10">
                     <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-xl w-[240px]">
                       <div className="text-xs text-gray-500 mb-1">Practice Valuation</div>
                       <div className="text-2xl font-bold text-gray-900 mb-1">$2.4M</div>
@@ -100,8 +72,36 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Patient Retention Card - Top Right */}
-                  <div className="absolute top-4 right-2 md:top-6 md:right-4 animate-float-4">
+                  {/* Monthly Cashflow Card - Left Top */}
+                  <div className="absolute top-[15%] left-[20%] transform -translate-x-1/2 animate-float-1">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[180px]">
+                      <div className="text-xs text-gray-500 mb-1">Monthly Cashflow</div>
+                      <div className="text-xl font-bold text-gray-900">$26.8k</div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-green-600 flex items-center gap-1">
+                          ↑ 8%
+                        </span>
+                        <span className="text-gray-500">Owner Take-Home Ready</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* EBITDA Margin Card - Left Bottom */}
+                  <div className="absolute top-[45%] left-[15%] transform -translate-x-1/2 animate-float-2">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[200px]">
+                      <div className="text-xs text-gray-500 mb-1">EBITDA Margin</div>
+                      <div className="text-xl font-bold text-gray-900">13.55%</div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className="text-red-600 flex items-center gap-1">
+                          ↓ 46%
+                        </span>
+                        <span className="text-gray-500">Industry average: 25-35%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Patient Retention Card - Right Top */}
+                  <div className="absolute top-[15%] right-[20%] transform translate-x-1/2 animate-float-4">
                     <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[180px]">
                       <div className="text-xs text-gray-500 mb-1">Patient Retention</div>
                       <div className="text-xl font-bold text-gray-900">82%</div>
@@ -114,8 +114,8 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Collection Rate Card - Bottom Right */}
-                  <div className="absolute bottom-4 right-2 md:bottom-6 md:right-4 animate-float-5">
+                  {/* Collection Rate Card - Right Bottom */}
+                  <div className="absolute top-[50%] right-[10%] transform translate-x-1/2 animate-float-5">
                     <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[200px]">
                       <div className="text-xs text-gray-500 mb-1">Collection Rate</div>
                       <div className="text-xl font-bold text-orange-600">73%</div>
