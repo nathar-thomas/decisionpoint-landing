@@ -10,14 +10,11 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <img
-                src="/pendl-logo-boxed.png"
-                alt="Pendl Logo"
-                className="h-8 w-8"
-              />
-              <span className="text-xl font-bold">Pendl</span>
-            </div>
+            <img
+              src="/pendl-logo-boxed.png"
+              alt="Pendl Logo"
+              className="h-8 w-8 object-contain"
+            />
           </Link>
           <nav className="hidden md:flex gap-6">
             <a href="#features" className="text-sm font-medium hover:underline underline-offset-4">
@@ -34,15 +31,8 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 relative bg-white overflow-hidden">
+        <section className="w-full py-16 md:py-24 lg:py-32 relative overflow-hidden" style={{backgroundColor: 'rgba(254, 253, 248, 1)'}}>
           <div className="container px-4 md:px-6 max-w-7xl mx-auto">
-            {/* Trust Badge */}
-            <div className="flex justify-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
-                <Users className="w-4 h-4" />
-                Best fit: Individual buyer
-              </div>
-            </div>
 
             {/* Main Headline */}
             <div className="text-center space-y-4 mb-16">
@@ -63,16 +53,16 @@ export default function LandingPage() {
                 <img 
                   src="/dental-practice.png" 
                   alt="Modern dental practice" 
-                  className="w-full h-auto rounded-2xl shadow-2xl"
+                  className="w-full h-auto rounded-2xl"
                 />
                 
                 {/* Floating Dashboard Cards */}
                 <div className="absolute inset-0 pointer-events-none">
                   {/* Monthly Cashflow Card - Top Left */}
-                  <div className="absolute top-4 left-4 md:top-8 md:left-8 animate-float-1">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[200px]">
-                      <div className="text-sm text-gray-500 mb-1">Monthly Cashflow</div>
-                      <div className="text-2xl font-bold text-gray-900">$26.8k</div>
+                  <div className="absolute top-4 left-2 md:top-6 md:left-4 animate-float-1">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[180px]">
+                      <div className="text-xs text-gray-500 mb-1">Monthly Cashflow</div>
+                      <div className="text-xl font-bold text-gray-900">$26.8k</div>
                       <div className="flex items-center gap-1 text-xs">
                         <span className="text-green-600 flex items-center gap-1">
                           ↑ 8%
@@ -82,11 +72,11 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* EBITDA Margin Card - Top */}
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 md:top-8 animate-float-2">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[220px]">
-                      <div className="text-sm text-gray-500 mb-1">EBITDA Margin</div>
-                      <div className="text-2xl font-bold text-gray-900">13.55%</div>
+                  {/* EBITDA Margin Card - Left Side */}
+                  <div className="absolute top-20 left-2 md:top-32 md:left-4 animate-float-2">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[200px]">
+                      <div className="text-xs text-gray-500 mb-1">EBITDA Margin</div>
+                      <div className="text-xl font-bold text-gray-900">13.55%</div>
                       <div className="flex items-center gap-1 text-xs">
                         <span className="text-red-600 flex items-center gap-1">
                           ↓ 46%
@@ -98,9 +88,9 @@ export default function LandingPage() {
 
                   {/* Practice Valuation Card - Center */}
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-float-3">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-xl max-w-[280px]">
-                      <div className="text-sm text-gray-500 mb-1">Practice Valuation</div>
-                      <div className="text-3xl font-bold text-gray-900 mb-1">$2.4M</div>
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-xl w-[240px]">
+                      <div className="text-xs text-gray-500 mb-1">Practice Valuation</div>
+                      <div className="text-2xl font-bold text-gray-900 mb-1">$2.4M</div>
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-green-600 flex items-center gap-1">
                           ↑ 12%
@@ -111,10 +101,10 @@ export default function LandingPage() {
                   </div>
 
                   {/* Patient Retention Card - Top Right */}
-                  <div className="absolute top-4 right-4 md:top-8 md:right-8 animate-float-4">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[200px]">
-                      <div className="text-sm text-gray-500 mb-1">Patient Retention</div>
-                      <div className="text-2xl font-bold text-gray-900">82%</div>
+                  <div className="absolute top-4 right-2 md:top-6 md:right-4 animate-float-4">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[180px]">
+                      <div className="text-xs text-gray-500 mb-1">Patient Retention</div>
+                      <div className="text-xl font-bold text-gray-900">82%</div>
                       <div className="flex items-center gap-1 text-xs">
                         <span className="text-green-600 flex items-center gap-1">
                           ↑
@@ -125,10 +115,10 @@ export default function LandingPage() {
                   </div>
 
                   {/* Collection Rate Card - Bottom Right */}
-                  <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 animate-float-5">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg max-w-[220px]">
-                      <div className="text-sm text-gray-500 mb-1">Collection Rate</div>
-                      <div className="text-2xl font-bold text-orange-600">73%</div>
+                  <div className="absolute bottom-4 right-2 md:bottom-6 md:right-4 animate-float-5">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-3 shadow-lg w-[200px]">
+                      <div className="text-xs text-gray-500 mb-1">Collection Rate</div>
+                      <div className="text-xl font-bold text-orange-600">73%</div>
                       <div className="flex items-center gap-1 text-xs">
                         <span className="text-orange-600 flex items-center gap-1">
                           ⚠
