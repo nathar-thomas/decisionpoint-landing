@@ -22,7 +22,7 @@ export function WaitlistForm() {
     honeypot: { status: "clear", emoji: "✅" },
     emailValid: { status: "pending", emoji: "⏳" },
     rateLimit: { status: "OK", emoji: "✅" },
-    lastUpdate: new Date().toLocaleTimeString(),
+    lastUpdate: "",
   })
 
   // Track if we're in development mode
@@ -38,13 +38,13 @@ export function WaitlistForm() {
           status: isValid ? "valid" : "invalid",
           emoji: isValid ? "✅" : "❌",
         },
-        lastUpdate: new Date().toLocaleTimeString(),
+        lastUpdate: typeof window !== 'undefined' ? new Date().toLocaleTimeString() : "",
       }))
     } else {
       setDebugStatus((prev) => ({
         ...prev,
         emailValid: { status: "pending", emoji: "⏳" },
-        lastUpdate: new Date().toLocaleTimeString(),
+        lastUpdate: typeof window !== 'undefined' ? new Date().toLocaleTimeString() : "",
       }))
     }
   }, [email])
@@ -88,7 +88,7 @@ export function WaitlistForm() {
       setDebugStatus((prev) => ({
         ...prev,
         honeypot: { status: "tripped", emoji: "❌" },
-        lastUpdate: new Date().toLocaleTimeString(),
+        lastUpdate: typeof window !== 'undefined' ? new Date().toLocaleTimeString() : "",
       }))
 
       setIsSubmitting(false)
@@ -120,13 +120,13 @@ export function WaitlistForm() {
         setDebugStatus((prev) => ({
           ...prev,
           rateLimit: { status: "Blocked", emoji: "❌" },
-          lastUpdate: new Date().toLocaleTimeString(),
+          lastUpdate: typeof window !== 'undefined' ? new Date().toLocaleTimeString() : "",
         }))
       } else {
         setDebugStatus((prev) => ({
           ...prev,
           rateLimit: { status: "OK", emoji: "✅" },
-          lastUpdate: new Date().toLocaleTimeString(),
+          lastUpdate: typeof window !== 'undefined' ? new Date().toLocaleTimeString() : "",
         }))
       }
 
@@ -139,7 +139,7 @@ export function WaitlistForm() {
           setDebugStatus((prev) => ({
             ...prev,
             emailValid: { status: "pending", emoji: "⏳" },
-            lastUpdate: new Date().toLocaleTimeString(),
+            lastUpdate: typeof window !== 'undefined' ? new Date().toLocaleTimeString() : "",
           }))
         }
 
