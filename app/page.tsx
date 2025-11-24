@@ -1,9 +1,12 @@
 import { CheckCircle, Clock, AlertTriangle, TrendingDown, Zap } from "lucide-react"
 import Link from "next/link"
+import { Toaster } from "sonner"
+import DemoDisplay from "../components/demo-display"
 
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <Toaster position="top-right" richColors />
       <header className="sticky top-0 z-50 border-b border-border/40" style={{backgroundColor: 'rgba(254, 253, 248, 1)'}}>
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -142,53 +145,7 @@ export default function LandingPage() {
               <p className="text-lg text-gray-600">Drop tax returns and watch intelligence emerge instantly</p>
             </div>
             
-            {/* Interactive Demo */}
-            <div className="max-w-6xl mx-auto">
-              <div className="grid md:grid-cols-3 gap-8 items-center">
-                {/* Drop Zone */}
-                <div className="text-center">
-                  <div className="border-3 border-dashed border-gray-300 rounded-xl p-8 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group">
-                    <svg className="w-16 h-16 mx-auto mb-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <p className="text-lg font-medium text-gray-700">Drop tax returns here</p>
-                    <p className="text-sm text-gray-500 mt-2">PDF files from 2021-2023</p>
-                  </div>
-                </div>
-
-                {/* Arrow/Processing */}
-                <div className="text-center">
-                  <svg className="w-12 h-12 mx-auto text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                  <p className="text-sm text-gray-600 mt-2">2-3 seconds</p>
-                </div>
-
-                {/* Results */}
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">EBITDA Extracted</span>
-                      <span className="text-2xl font-bold text-gray-900">$321K ✓</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Practice Value</span>
-                      <span className="text-2xl font-bold text-gray-900">$2.4M</span>
-                    </div>
-                    <div className="border-t pt-3">
-                      <div className="text-sm text-red-600 mb-2">🚨 Red Flag: 73% collection rate</div>
-                      <div className="text-sm text-green-600">💡 Opportunity: $180K revenue recovery</div>
-                    </div>
-                    <div className="border-t pt-3">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">5.5 hours saved</p>
-                        <p className="text-sm text-gray-500">vs. manual analysis</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <DemoDisplay />
           </div>
         </section>
 

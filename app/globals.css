@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -169,4 +171,28 @@
 
 .pulse-subtle {
   animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+/* Expand out animation for folder - starts small, grows big, repeats */
+@keyframes expandOut {
+  0% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Fade in up animation for insights */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
